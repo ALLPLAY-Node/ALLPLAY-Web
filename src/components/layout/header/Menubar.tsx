@@ -9,7 +9,7 @@ const Menubar = () => {
           `p-[10px] ${isActive ? "text-primary font-semibold" : ""}`
         }
       >
-        시설 등록
+        시설 찾기
       </NavLink>
       <NavLink
         to="/spots/new"
@@ -17,7 +17,7 @@ const Menubar = () => {
           `p-[10px] ${isActive ? "text-primary font-semibold" : ""}`
         }
       >
-        동호회 찾기
+        시설 등록
       </NavLink>
       <NavLink
         to="/clubs"
@@ -33,7 +33,7 @@ const Menubar = () => {
           `p-[10px] ${isActive ? "text-primary font-semibold" : ""}`
         }
       >
-        시설 찾기
+        동호회 등록
       </NavLink>
     </div>
   );
