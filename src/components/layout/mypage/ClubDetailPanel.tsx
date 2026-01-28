@@ -14,9 +14,15 @@ const parseJoinRequirements = (input?: string) => {
 
 type ClubDetailPanelProps = {
   club: ClubSummary | null;
+  onClose?: () => void;
+  onLeaveClub?: () => void;
 };
 
-const ClubDetailPanel = ({ club }: ClubDetailPanelProps) => {
+const ClubDetailPanel = ({
+  club,
+  onClose,
+  onLeaveClub
+}: ClubDetailPanelProps) => {
   const requirements = parseJoinRequirements(club?.joinRequirement);
 
   return (
@@ -53,8 +59,11 @@ const ClubDetailPanel = ({ club }: ClubDetailPanelProps) => {
             <div className="text-lg font-bold mb-3">참여 조건</div>
             <ul className="flex flex-col gap-2 text-sm">
               {requirements.length > 0 ? (
-                requirements.map((item) => (
-                  <li key={item} className="flex items-center gap-2">
+                requirements.map((item, index) => (
+                  <li
+                    key={`${item}-${index}`}
+                    className="flex items-center gap-2"
+                  >
                     <span className="text-primary">✓</span>
                     <span>{item}</span>
                   </li>
@@ -75,11 +84,19 @@ const ClubDetailPanel = ({ club }: ClubDetailPanelProps) => {
         </div>
 
         <div className="flex justify-end gap-3">
-          <button className="h-10 px-6 rounded-lg border border-border text-sm">
-            닫기
+          <button
+            type="button"
+            className="h-10 px-6 rounded-lg border border-border text-sm"
+            onClick={onClose}
+          >
+            {"\uB2EB\uAE30"}
           </button>
-          <button className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm">
-            탈퇴하기
+          <button
+            type="button"
+            className="h-10 px-6 rounded-lg bg-primary text-primary-foreground text-sm"
+            onClick={onLeaveClub}
+          >
+            {"\uD0C8\uD1F4\uD558\uAE30"}
           </button>
         </div>
       </div>

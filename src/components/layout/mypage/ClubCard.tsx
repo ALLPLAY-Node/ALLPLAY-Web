@@ -25,6 +25,9 @@ const ClubCard = ({ club, variant, onClick }: ClubCardProps) => {
     <div
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
+      aria-label={
+        isClickable ? `${club.name} \uC0C1\uC138 \uBCF4\uAE30` : undefined
+      }
       onClick={isClickable ? () => onClick?.(club) : undefined}
       onKeyDown={(event) => {
         if (!isClickable) {

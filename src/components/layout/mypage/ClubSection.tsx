@@ -9,6 +9,7 @@ type ClubSectionProps = {
   clubs: ClubSummary[];
   variant: ClubCardVariant;
   onSelect?: (club: ClubSummary) => void;
+  onLeaveClub?: (club: ClubSummary) => void;
   selectedClubId?: string | null;
 };
 
@@ -17,9 +18,19 @@ const ClubSection = ({
   clubs,
   variant,
   onSelect,
+  onLeaveClub,
   selectedClubId
 }: ClubSectionProps) => {
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const currentIds = new Set(clubs.map((c) => c.id));
+    Object.keys(itemRefs.current).forEach((id) => {
+      if (!currentIds.has(id)) {
+        delete itemRefs.current[id];
+      }
+    });
+  }, [clubs]);
 
   useEffect(() => {
     if (!selectedClubId) {
@@ -40,7 +51,11 @@ const ClubSection = ({
       <h2 className="text-lg font-bold">{title}</h2>
       <div className="flex flex-col gap-4">
         {clubs.length === 0 ? (
-          <div className="min-h-[312px]" />
+          <div className="min-h-[312px] flex items-center justify-center text-muted-foreground">
+            {variant === "joined"
+              ? "가입한 동호회가 없습니다"
+              : "운영 중인 동호회가 없습니다"}
+          </div>
         ) : (
           clubs.map((club) => (
             <div
@@ -52,7 +67,11 @@ const ClubSection = ({
             >
               <ClubCard club={club} variant={variant} onClick={onSelect} />
               {variant === "joined" && selectedClubId === club.id ? (
-                <ClubDetailPanel club={club} />
+                <ClubDetailPanel
+                  club={club}
+                  onClose={() => onSelect?.(club)}
+                  onLeaveClub={() => onLeaveClub?.(club)}
+                />
               ) : null}
             </div>
           ))

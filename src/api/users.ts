@@ -22,7 +22,8 @@ export const getMyClubs = async () => {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch my clubs");
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.message ?? "Failed to fetch my clubs");
   }
 
   return (await res.json()) as ApiResponse<ClubListResponse>;
@@ -35,7 +36,8 @@ export const getManagedClubs = async () => {
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch managed clubs");
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.message ?? "Failed to fetch managed clubs");
   }
 
   return (await res.json()) as ApiResponse<ClubListResponse>;

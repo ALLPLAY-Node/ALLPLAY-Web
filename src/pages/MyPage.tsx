@@ -40,6 +40,9 @@ const MyPage = () => {
   const [joinedClubs, setJoinedClubs] = useState<ClubSummary[]>([]);
   const [managedClubs, setManagedClubs] = useState<ClubSummary[]>([]);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "clubs" | "reviews" | "help" | "profile"
+  >("clubs");
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -49,8 +52,23 @@ const MyPage = () => {
           getManagedClubs()
         ]);
 
-        setJoinedClubs(joinedRes.success.items ?? []);
-        setManagedClubs(managedRes.success.items ?? []);
+        if (joinedRes.resultType !== "SUCCESS") {
+          console.error(joinedRes);
+        }
+        if (managedRes.resultType !== "SUCCESS") {
+          console.error(managedRes);
+        }
+
+        setJoinedClubs(
+          joinedRes.resultType === "SUCCESS"
+            ? (joinedRes.success.items ?? [])
+            : []
+        );
+        setManagedClubs(
+          managedRes.resultType === "SUCCESS"
+            ? (managedRes.success.items ?? [])
+            : []
+        );
       } catch (error) {
         console.error(error);
       }
@@ -68,7 +86,7 @@ const MyPage = () => {
   };
 
   return (
-    <MyPageLayout activeTab="clubs">
+    <MyPageLayout activeTab={activeTab} onTabChange={setActiveTab}>
       <ClubSection
         title="가입한 동호회"
         clubs={joinedList}
