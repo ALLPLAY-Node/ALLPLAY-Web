@@ -1,60 +1,118 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Check, X } from "lucide-react";
+import { getClubDetail, joinClub } from "@/api/clubs";
+import type { ClubDetail } from "@/types/clubs";
 
 const ClubDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [clubData, setClubData] = useState<ClubDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 임시 데이터 (나중에 API로 교체)
-  const clubData = {
-    name: "테니스 동호회",
-    location: "서울 테니스",
-    currentCount: 10,
-    maxCount: 20,
-    operator: {
-      name: "홍길동",
-      intro: "--"
-    },
-    introduction:
-      "테니스를 처음 시작하는 분들을 위한 친목 동호회 입니다. 기초부터 천천히 배우면서 즐겁게 운동하는것을 목표로 합니다.",
-    activityInfo: {
-      area: "서울",
-      skillLevel: "초보",
-      recruitment: "20명 이내"
-    },
-    conditions: ["테니스 초보자 환영", "매너 필수", "주 2회 참여 가능자"],
-    members: [
-      {
-        name: "사용자 1",
-        area: "경기",
-        joinDate: "2026.01.10",
-        intro: "안녕하세요 잘부탁드립니다."
-      },
-      {
-        name: "사용자 2",
-        area: "서울",
-        joinDate: "2026.01.09",
-        intro: "테니스 즐겁게 배우고 싶어요."
-      },
-      {
-        name: "사용자 3",
-        area: "인천",
-        joinDate: "2026.01.08",
-        intro: "초보지만 열심히 하겠습니다."
-      },
-      {
-        name: "사용자 4",
-        area: "경기",
-        joinDate: "2026.01.07",
-        intro: "함께 운동하고 싶어요."
+  // API로 동호회 상세 정보 가져오기
+  useEffect(() => {
+    const fetchClubDetail = async () => {
+      if (!id) return;
+
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await getClubDetail(id);
+        if (response.resultType === "SUCCESS" && response.success) {
+          setClubData(response.success);
+        } else {
+          setError(response.message || "동호회 정보를 불러올 수 없습니다.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch club detail:", err);
+        setError("동호회 정보를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setIsLoading(false);
       }
-    ]
+    };
+
+    fetchClubDetail();
+  }, [id]);
+
+  // 로딩 중이거나 데이터가 없을 때
+  if (isLoading) {
+    return (
+      <main className="w-full pt-4 pb-10">
+        <div className="text-center py-10">
+          <p className="text-gray-500">로딩 중...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !clubData) {
+    return (
+      <main className="w-full pt-4 pb-10">
+        <div className="text-center py-10">
+          <p className="text-red-500">
+            {error || "동호회 정보를 찾을 수 없습니다."}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // API 응답을 기존 구조에 맞게 변환
+  const displayData = {
+    name: clubData.facilityName || `${clubData.sportType} 동호회`,
+    location: `${clubData.city} ${clubData.district}`,
+    currentCount: 10, // API에 없으므로 임시값
+    maxCount: 20, // API에 없으므로 임시값
+    operator: {
+      name: "운영자", // API에 없으므로 임시값
+      intro: clubData.contact || "--"
+    },
+    introduction: clubData.introduction || "",
+    activityInfo: {
+      area: `${clubData.city} ${clubData.district}`,
+      skillLevel: clubData.sportType,
+      recruitment: "20명 이내" // API에 없으므로 임시값
+    },
+    conditions: clubData.usageGuide
+      ? clubData.usageGuide.split("\n").filter((c) => c.trim())
+      : ["테니스 초보자 환영", "매너 필수", "주 2회 참여 가능자"],
+    members: [] as Array<{
+      name: string;
+      area: string;
+      joinDate: string;
+      intro: string;
+    }>, // API에 없으므로 빈 배열
+    imageUrl: clubData.imageUrl,
+    information: clubData.information,
+    operatingHours: clubData.operatingHours,
+    cost: clubData.cost,
+    address: clubData.address,
+    homepageUrl: clubData.homepageUrl
   };
 
-  const handleJoinClick = () => {
-    setIsJoinModalOpen(true);
+  const handleJoinClick = async () => {
+    if (!id) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
+      return;
+    }
+
+    try {
+      const response = await joinClub(id, token);
+      if (response.resultType === "SUCCESS") {
+        setIsJoinModalOpen(true);
+      } else {
+        alert(response.message || "가입 신청에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("동호회 가입 신청 실패:", error);
+      alert("가입 신청 중 오류가 발생했습니다.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -72,12 +130,17 @@ const ClubDetailPage = () => {
       <section className="mb-6 flex gap-6">
         {/* 왼쪽: 이미지 (3/5) */}
         <div className="h-[400px] w-3/5 rounded-lg bg-gray-200">
-          {/* API로 이미지 불러올 예정 */}
-          <img
-            src=""
-            alt={clubData.name}
-            className="h-full w-full rounded-lg object-cover"
-          />
+          {displayData.imageUrl ? (
+            <img
+              src={displayData.imageUrl}
+              alt={displayData.name}
+              className="h-full w-full rounded-lg object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-gray-400">
+              이미지 없음
+            </div>
+          )}
         </div>
 
         {/* 오른쪽: 정보 카드들 (2/5) */}
@@ -91,10 +154,10 @@ const ClubDetailPage = () => {
             </div>
 
             <h1 className="mb-1 text-2xl font-bold text-gray-900">
-              {clubData.name}
+              {displayData.name}
             </h1>
             <p className="text-xs text-gray-500">동호회 ID: {id}</p>
-            <p className="mb-auto mt-2 text-gray-600">{clubData.location}</p>
+            <p className="mb-auto mt-2 text-gray-600">{displayData.location}</p>
 
             {/* 현재인원 및 가입하기 버튼 */}
             <div className="mt-auto space-y-3">
@@ -102,9 +165,9 @@ const ClubDetailPage = () => {
                 <span className="text-sm text-gray-700">현재인원</span>
                 <span className="text-sm text-gray-700">
                   <span className="text-[#1EC72F]">
-                    {clubData.currentCount}
+                    {displayData.currentCount}
                   </span>{" "}
-                  / {clubData.maxCount} 명
+                  / {displayData.maxCount} 명
                 </span>
               </div>
 
@@ -127,10 +190,10 @@ const ClubDetailPage = () => {
               <div className="h-12 w-12 shrink-0 rounded-full bg-gray-300" />
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  이름: {clubData.operator.name}
+                  이름: {displayData.operator.name}
                 </p>
                 <p className="text-sm text-gray-600">
-                  한줄소개: {clubData.operator.intro}
+                  한줄소개: {displayData.operator.intro}
                 </p>
               </div>
             </div>
@@ -141,7 +204,7 @@ const ClubDetailPage = () => {
       {/* 동호회 소개 섹션 */}
       <section className="mb-6 rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
         <h2 className="mb-4 text-xl font-bold text-gray-900">동호회 소개</h2>
-        <p className="text-gray-700">{clubData.introduction}</p>
+        <p className="text-gray-700">{displayData.introduction}</p>
       </section>
 
       {/* 활동 정보 & 참여 조건 섹션 */}
@@ -150,9 +213,14 @@ const ClubDetailPage = () => {
         <div className="rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
           <h2 className="mb-4 text-xl font-bold text-gray-900">활동 정보</h2>
           <div className="space-y-2 text-gray-700">
-            <p>활동지역: {clubData.activityInfo.area}</p>
-            <p>실력 수준: {clubData.activityInfo.skillLevel}</p>
-            <p>모집인원: {clubData.activityInfo.recruitment}</p>
+            <p>활동지역: {displayData.activityInfo.area}</p>
+            <p>실력 수준: {displayData.activityInfo.skillLevel}</p>
+            <p>모집인원: {displayData.activityInfo.recruitment}</p>
+            {displayData.operatingHours && (
+              <p>운영시간: {displayData.operatingHours}</p>
+            )}
+            {displayData.cost && <p>비용: {displayData.cost}</p>}
+            {displayData.address && <p>주소: {displayData.address}</p>}
           </div>
         </div>
 
@@ -160,7 +228,7 @@ const ClubDetailPage = () => {
         <div className="rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
           <h2 className="mb-4 text-xl font-bold text-gray-900">참여 조건</h2>
           <div className="space-y-2">
-            {clubData.conditions.map((condition, index) => (
+            {displayData.conditions.map((condition, index) => (
               <div
                 key={index}
                 className="flex items-center gap-2 text-gray-700"
@@ -179,26 +247,34 @@ const ClubDetailPage = () => {
           동호회 멤버 현황
         </h2>
         <div className="space-y-4">
-          {clubData.members.map((member, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-4 border-b border-gray-200 pb-4 last:border-0"
-            >
-              <div className="h-12 w-12 shrink-0 rounded-full bg-gray-300" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  이름: {member.name}
-                </p>
-                <p className="text-sm text-gray-600">활동지역: {member.area}</p>
-                <p className="text-sm text-gray-600">
-                  가입일자: {member.joinDate}
-                </p>
-                <p className="text-sm text-gray-600">
-                  한줄 소개: {member.intro}
-                </p>
+          {displayData.members.length > 0 ? (
+            displayData.members.map((member, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 border-b border-gray-200 pb-4 last:border-0"
+              >
+                <div className="h-12 w-12 shrink-0 rounded-full bg-gray-300" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    이름: {member.name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    활동지역: {member.area}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    가입일자: {member.joinDate}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    한줄 소개: {member.intro}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="py-4 text-center text-gray-500">
+              등록된 멤버가 없습니다.
+            </p>
+          )}
         </div>
       </section>
 

@@ -25,6 +25,10 @@ export const router = createBrowserRouter([
       {
         path: "/clubs/:id",
         Component: ClubDetailPage
+      },
+      {
+        path: "/clubs/:id/edit",
+        Component: ClubCreatePage
       }
     ]
   }
