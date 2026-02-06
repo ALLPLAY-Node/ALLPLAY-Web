@@ -1,4 +1,5 @@
 import Layout from "@/components/layout/Layout";
+import ClubCreatePage from "@/pages/ClubCreatePage";
 import ClubDetailPage from "@/pages/ClubDetailPage";
 import ClubsPage from "@/pages/ClubsPage";
 import HomePage from "@/pages/HomePage";
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
       {
         path: "/clubs",
         Component: ClubsPage
+      },
+      {
+        path: "/clubs/new",
+        Component: ClubCreatePage
       },
       {
         path: "/clubs/:id",
