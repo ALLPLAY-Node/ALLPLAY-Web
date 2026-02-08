@@ -6,6 +6,10 @@
     @apply m-0;
     font-family: var(--font-pretendard);
   }
+
+  button {
+    @apply cursor-pointer;
+  }
 }
 
 @theme {

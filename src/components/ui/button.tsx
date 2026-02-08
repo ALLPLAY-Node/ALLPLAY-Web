@@ -21,7 +21,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         customblue: "bg-[#006FFF] text-white text-[11px] hover:bg-[#005EDB]",
         customwhite:
-          "bg-white text-black text-[11px] hover:bg-gray-100 border-1 border-[#999999]"
+          "bg-white text-black text-[11px] hover:bg-gray-100 border border-[#999999]",
+        customball:
+          "bg-white text-black text-[16px] hover:bg-gray-100 border border-[#B3B3B3] shadow-md",
+        customgradient:
+          "flex flex-col gap-1 bg-[linear-gradient(135deg,rgba(132,0,255,0.25)_0%,rgba(255,255,255,0.25)_100%)] shadow-[0_4px_4px_rgba(0,0,0,0.25)] text-white text-[10px] font-regular"
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -29,7 +33,9 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
         "icon-sm": "size-8",
-        "icon-lg": "size-10"
+        "icon-lg": "size-10",
+        ball: "w-full p-0 aspect-[7/8] min-w-[110px] max-w-[140px]",
+        gradient: "p-0 aspect-[139/128] min-w-[110px]"
       }
     },
     defaultVariants: {
