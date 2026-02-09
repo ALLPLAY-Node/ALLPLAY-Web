@@ -48,7 +48,7 @@ const LeaveClubDoneBox = ({ onClose }: LeaveClubDoneBoxProps) => {
           </svg>
         </button>
 
-        <div className="absolute left-1/2 top-[96px] flex h-[180px] w-[469px] -translate-x-1/2 flex-col items-center gap-6">
+        <div className="absolute left-1/2 top-[96px] flex h-[180px] w-full max-w-[469px] -translate-x-1/2 flex-col items-center gap-6 px-4 sm:px-0">
           <div className="flex h-[180px] w-[246px] flex-col items-center gap-3">
             <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-[#E5F1FF] p-[25px]">
               <svg

@@ -6,6 +6,7 @@ import {
   type ClubJoinRequestItem,
   type ClubJoinRequestStatus
 } from "@/api/clubs";
+import { getApiResultType } from "@/api/common";
 import type { ClubSummary } from "@/types/club";
 
 type ManagedClubDetailPanelProps = {
@@ -85,6 +86,7 @@ const ManagedClubDetailPanel = ({
   club,
   onEditClub
 }: ManagedClubDetailPanelProps) => {
+  const clubId = club?.id;
   const [joinRequests, setJoinRequests] = useState<LocalJoinRequest[]>([]);
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
@@ -112,13 +114,13 @@ const ManagedClubDetailPanel = ({
   }, [members]);
 
   useEffect(() => {
-    if (!club) {
+    if (!clubId) {
       setJoinRequests([]);
       setMembers([]);
       return;
     }
 
-    const isMockTarget = club.id === MOCK_TARGET_CLUB_ID;
+    const isMockTarget = clubId === MOCK_TARGET_CLUB_ID;
     setMembers(isMockTarget ? mockMembers : []);
 
     if (!ENABLE_JOIN_REQUEST_API) {
@@ -129,12 +131,13 @@ const ManagedClubDetailPanel = ({
     const fetchJoinRequests = async () => {
       setIsLoadingRequests(true);
       try {
-        const response = await getClubJoinRequests(club.id);
-        const resultType = response.resultType ?? response.resultTyle;
+        const response = await getClubJoinRequests(clubId);
+        // 백엔드 응답 오탈자(resultTyle) 호환을 위해 공통 판별 함수를 사용한다.
+        const resultType = getApiResultType(response);
 
         if (resultType === "SUCCESS") {
           setJoinRequests(
-            (response.success.items ?? []).map(toLocalJoinRequest)
+            (response.success?.items ?? []).map(toLocalJoinRequest)
           );
         } else {
           setJoinRequests(isMockTarget ? mockJoinRequests : []);
@@ -148,7 +151,7 @@ const ManagedClubDetailPanel = ({
     };
 
     void fetchJoinRequests();
-  }, [club]);
+  }, [clubId]);
 
   const handleRequestDecision = async (
     request: LocalJoinRequest,
@@ -167,7 +170,8 @@ const ManagedClubDetailPanel = ({
           request.id,
           status
         );
-        const resultType = response.resultType ?? response.resultTyle;
+        // 백엔드 응답 오탈자(resultTyle) 호환을 위해 공통 판별 함수를 사용한다.
+        const resultType = getApiResultType(response);
 
         if (resultType !== "SUCCESS") {
           throw new Error(response.message || "가입 신청 처리 실패");

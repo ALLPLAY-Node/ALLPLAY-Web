@@ -1,6 +1,6 @@
 ﻿import type { ClubSummary } from "@/types/club";
 
-const placeholderText = "임시 입니다";
+const placeholderText = "정보 없음";
 
 const parseJoinRequirements = (input?: string) => {
   // 서버 문자열(줄바꿈/쉼표)을 화면용 배열로 변환한다.
