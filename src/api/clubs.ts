@@ -9,8 +9,39 @@ import type {
   UpdateClubResponse
 } from "@/types/clubs";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+type ApiClubsResponse = {
+  resultType?: "SUCCESS" | "ERROR";
+  resultTyle?: "SUCCESS" | "ERROR";
+  message: string;
+  error: string | null;
+  success: {
+    items: Array<{
+      id: number;
+      clubName: string;
+      clubPhotoUrl?: string;
+      description: string;
+      joinRequirement: string;
+      region: string;
+      maxMemberCount: string | number;
+      currentMemberCount: string | number;
+    }>;
+    cursor: number | string | null;
+    hasNext: boolean;
+  } | null;
+};
+
+type ApiEnvelope<T> = {
+  resultType?: "SUCCESS" | "ERROR";
+  resultTyle?: "SUCCESS" | "ERROR";
+  message: string;
+  error: string | null;
+  success: T | null;
+};
+
+const getResultType = (data: { resultType?: string; resultTyle?: string }) =>
+  data.resultType ?? data.resultTyle ?? "ERROR";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export const getClubs = async (
   params: ClubsQueryParams = {}
@@ -26,7 +57,7 @@ export const getClubs = async (
   if (params.keyword) {
     queryParams.append("keyword", params.keyword);
   }
-  if (params.sportId) {
+  if (params.sportId !== undefined && params.sportId !== null) {
     queryParams.append("sportId", params.sportId.toString());
   }
   if (params.cursor) {
@@ -43,16 +74,55 @@ export const getClubs = async (
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch clubs: ${response.statusText}`);
+    let errorDetail = "";
+    try {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        errorDetail = JSON.stringify(data);
+      } else {
+        errorDetail = await response.text();
+      }
+    } catch {
+      // Ignore parsing errors and fall back to status text only.
+    }
+    const message = `Failed to fetch clubs: ${response.status} ${response.statusText}${errorDetail ? ` - ${errorDetail}` : ""}`;
+    console.error(message, { url });
+    throw new Error(message);
   }
 
-  return response.json();
+  const data = (await response.json()) as ApiClubsResponse;
+  if (getResultType(data) !== "SUCCESS" || !data.success) {
+    const message = `Failed to fetch clubs: ${data.message || "Unknown error"}${data.error ? ` - ${data.error}` : ""}`;
+    console.error(message, { url, data });
+    throw new Error(message);
+  }
+
+  return {
+    clubs: data.success.items.map((item) => ({
+      id: item.id,
+      name: item.clubName,
+      description: item.description,
+      place: item.region,
+      currentCount: Number.isFinite(Number(item.currentMemberCount))
+        ? Number(item.currentMemberCount)
+        : 0,
+      maxCount: Number.isFinite(Number(item.maxMemberCount))
+        ? Number(item.maxMemberCount)
+        : 0,
+      tags: [],
+      imageUrl: item.clubPhotoUrl
+    })),
+    cursor: data.success.cursor ? String(data.success.cursor) : undefined,
+    hasMore: data.success.hasNext
+  };
 };
 
 export const getClubDetail = async (
   clubId: string
 ): Promise<ClubDetailResponse> => {
-  const url = `${API_BASE_URL}/clubs/${clubId}`;
+  const encodedId = encodeURIComponent(clubId);
+  const url = `${API_BASE_URL}/clubs/${encodedId}`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -65,14 +135,56 @@ export const getClubDetail = async (
     throw new Error(`Failed to fetch club detail: ${response.statusText}`);
   }
 
-  return response.json();
+  const data = (await response.json()) as ApiEnvelope<{
+    id: number;
+    clubName: string;
+    clubPhotoUrl?: string;
+    operator: { name: string; introduce: string };
+    region: string;
+    level: string;
+    maxMemberCount: number;
+    currentMenberCount?: number;
+    currentMemberCount?: number;
+    joinRequirement: string;
+    contact: string;
+    homePageUrl?: string;
+  }>;
+
+  if (getResultType(data) !== "SUCCESS" || !data.success) {
+    const message = `Failed to fetch club detail: ${data.message || "Unknown error"}${data.error ? ` - ${data.error}` : ""}`;
+    console.error(message, { url, data });
+    throw new Error(message);
+  }
+
+  const currentMemberCount =
+    data.success.currentMemberCount ?? data.success.currentMenberCount ?? 0;
+
+  return {
+    resultType: "SUCCESS",
+    message: data.message,
+    error: null,
+    success: {
+      id: data.success.id,
+      clubName: data.success.clubName,
+      clubPhotoUrl: data.success.clubPhotoUrl,
+      operator: data.success.operator,
+      region: data.success.region,
+      level: data.success.level,
+      maxMemberCount: data.success.maxMemberCount,
+      currentMemberCount,
+      joinRequirement: data.success.joinRequirement,
+      contact: data.success.contact,
+      homePageUrl: data.success.homePageUrl
+    }
+  };
 };
 
 export const joinClub = async (
   clubId: string,
   accessToken: string
 ): Promise<JoinClubResponse> => {
-  const url = `${API_BASE_URL}/clubs/${clubId}/join`;
+  const encodedId = encodeURIComponent(clubId);
+  const url = `${API_BASE_URL}/clubs/${encodedId}/join`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -86,7 +198,24 @@ export const joinClub = async (
     throw new Error(`Failed to join club: ${response.statusText}`);
   }
 
-  return response.json();
+  const data = (await response.json()) as ApiEnvelope<{
+    clubId: string;
+    userId: string;
+    createdAt: string;
+  }>;
+
+  if (getResultType(data) !== "SUCCESS" || !data.success) {
+    const message = `Failed to join club: ${data.message || "Unknown error"}${data.error ? ` - ${data.error}` : ""}`;
+    console.error(message, { url, data });
+    throw new Error(message);
+  }
+
+  return {
+    resultType: "SUCCESS",
+    message: data.message,
+    error: null,
+    success: data.success
+  };
 };
 
 export const createClub = async (
@@ -108,7 +237,24 @@ export const createClub = async (
     throw new Error(`Failed to create club: ${response.statusText}`);
   }
 
-  return response.json();
+  const responseData = (await response.json()) as ApiEnvelope<{
+    id: string;
+    clubName: string;
+    createdAt: string;
+  }>;
+
+  if (getResultType(responseData) !== "SUCCESS" || !responseData.success) {
+    const message = `Failed to create club: ${responseData.message || "Unknown error"}${responseData.error ? ` - ${responseData.error}` : ""}`;
+    console.error(message, { url, responseData });
+    throw new Error(message);
+  }
+
+  return {
+    resultType: "SUCCESS",
+    message: responseData.message,
+    error: null,
+    success: responseData.success
+  };
 };
 
 export const updateClub = async (
@@ -116,7 +262,8 @@ export const updateClub = async (
   data: UpdateClubRequest,
   accessToken: string
 ): Promise<UpdateClubResponse> => {
-  const url = `${API_BASE_URL}/clubs/${clubId}`;
+  const encodedId = encodeURIComponent(clubId);
+  const url = `${API_BASE_URL}/clubs/${encodedId}`;
 
   // FormData를 사용하여 파일 업로드 지원
   const formData = new FormData();
@@ -155,5 +302,22 @@ export const updateClub = async (
     throw new Error(`Failed to update club: ${response.statusText}`);
   }
 
-  return response.json();
+  const responseData = (await response.json()) as ApiEnvelope<{
+    id: string;
+    clubName: string;
+    createdAt: string;
+  }>;
+
+  if (getResultType(responseData) !== "SUCCESS" || !responseData.success) {
+    const message = `Failed to update club: ${responseData.message || "Unknown error"}${responseData.error ? ` - ${responseData.error}` : ""}`;
+    console.error(message, { url, responseData });
+    throw new Error(message);
+  }
+
+  return {
+    resultType: "SUCCESS",
+    message: responseData.message,
+    error: null,
+    success: responseData.success
+  };
 };

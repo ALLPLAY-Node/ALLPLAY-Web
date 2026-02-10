@@ -18,17 +18,14 @@ export const sports: Sport[] = [
 // 실력수준 정보
 export const skillLevels: string[] = ["초급", "중급", "고급"];
 
-// 연령대 옵션
+// 연령대 옵션 (API enum과 1:1 매핑을 위해 60대 이상은 단일 항목으로 표시)
 export const ageGroups: string[] = [
   "10대",
   "20대",
   "30대",
   "40대",
   "50대",
-  "60대",
-  "70대",
-  "80대",
-  "90대"
+  "60대 이상"
 ];
 
 // 연령대 매핑 (UI 표시명 <-> API enum)
@@ -38,10 +35,7 @@ const uiToApiAgeMap: Record<string, AgeGroup> = {
   "30대": "THIRTIES",
   "40대": "FORTIES",
   "50대": "FIFTIES",
-  "60대": "OVER_SIXTIES",
-  "70대": "OVER_SIXTIES",
-  "80대": "OVER_SIXTIES",
-  "90대": "OVER_SIXTIES"
+  "60대 이상": "OVER_SIXTIES"
 };
 
 const apiToUIAgeMap: Record<AgeGroup, string> = {
@@ -50,7 +44,7 @@ const apiToUIAgeMap: Record<AgeGroup, string> = {
   THIRTIES: "30대",
   FORTIES: "40대",
   FIFTIES: "50대",
-  OVER_SIXTIES: "60대"
+  OVER_SIXTIES: "60대 이상"
 };
 
 // 실력수준 매핑 (UI 표시명 <-> API enum)

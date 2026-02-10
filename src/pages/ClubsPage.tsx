@@ -25,8 +25,9 @@ const ClubsPage = () => {
   >();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [cursor, setCursor] = useState<string | undefined>();
+  const [hasMore, setHasMore] = useState<boolean>(false);
 
-  // API 호출 함수
+  // 필터 변경 시 호출되는 기본 목록 API
   const fetchClubs = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -34,40 +35,64 @@ const ClubsPage = () => {
         regionId: selectedRegionId,
         ageGroup: selectedAgeGroup,
         keyword: searchKeyword || undefined,
-        sportId: selectedSport || undefined,
-        cursor: cursor
+        sportId: selectedSport || undefined
       });
       setClubs(response.clubs);
       setCursor(response.cursor);
+      setHasMore(!!response.cursor);
     } catch (error) {
       console.error("Failed to fetch clubs:", error);
       // 에러 발생 시 빈 배열로 설정
       setClubs([]);
+      setHasMore(false);
     } finally {
       setIsLoading(false);
     }
-  }, [
-    selectedSport,
-    selectedRegionId,
-    selectedAgeGroup,
-    searchKeyword,
-    cursor
-  ]);
+  }, [selectedSport, selectedRegionId, selectedAgeGroup, searchKeyword]);
+
+  // 필터 / 검색어 변경 시 페이지네이션 커서 초기화
+  useEffect(() => {
+    setCursor(undefined);
+  }, [selectedSport, selectedRegionId, selectedAgeGroup, searchKeyword]);
 
   // 필터 변경 시 API 호출
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
 
-  const handleRegionChange = (
-    region: string | undefined,
-    isAllSelected: boolean
-  ) => {
-    setSelectedRegion(region);
-    setSelectedRegionId(undefined);
-    if (isAllSelected || !region) {
-      setSelectedDistrict(undefined);
+  // 추가 페이지 로딩
+  const handleLoadMore = useCallback(async () => {
+    if (!cursor) return;
+    setIsLoading(true);
+    try {
+      const response = await getClubs({
+        regionId: selectedRegionId,
+        ageGroup: selectedAgeGroup,
+        keyword: searchKeyword || undefined,
+        sportId: selectedSport || undefined,
+        cursor
+      });
+      setClubs((prev) => [...prev, ...response.clubs]);
+      setCursor(response.cursor);
+      setHasMore(!!response.cursor);
+    } catch (error) {
+      console.error("Failed to fetch more clubs:", error);
+    } finally {
+      setIsLoading(false);
     }
+  }, [
+    cursor,
+    selectedSport,
+    selectedRegionId,
+    selectedAgeGroup,
+    searchKeyword
+  ]);
+
+  const handleRegionChange = (region: string | undefined) => {
+    setSelectedRegion(region);
+    // 지역이 바뀔 때마다 구 선택은 항상 초기화
+    setSelectedRegionId(undefined);
+    setSelectedDistrict(undefined);
   };
 
   const handleDistrictChange = (
@@ -111,7 +136,6 @@ const ClubsPage = () => {
         onDistrictChange={handleDistrictChange}
         onAgeChange={handleAgeChange}
         onSearchChange={setSearchKeyword}
-        selectedRegionId={selectedRegionId}
       />
 
       {/* 카드 리스트 */}
@@ -134,6 +158,19 @@ const ClubsPage = () => {
           ))
         )}
       </section>
+
+      {/* 더보기 버튼 (페이지네이션) */}
+      {hasMore && !isLoading && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 transition-colors duration-200 hover:bg-gray-50"
+          >
+            더 보기
+          </button>
+        </div>
+      )}
 
       {/* 가입 신청 완료 모달 */}
       <SuccessModal

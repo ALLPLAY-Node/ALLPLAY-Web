@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search } from "lucide-react";
 import RegionDropdown from "./RegionDropdown";
 import DistrictDropdown from "./DistrictDropdown";
@@ -15,7 +16,6 @@ interface ClubFilterBarProps {
   ) => void;
   onAgeChange: (age: string | undefined) => void;
   onSearchChange: (keyword: string) => void;
-  selectedRegionId?: string;
 }
 
 const ClubFilterBar = ({
@@ -28,8 +28,10 @@ const ClubFilterBar = ({
   onAgeChange,
   onSearchChange
 }: ClubFilterBarProps) => {
+  const [forceCloseKey, setForceCloseKey] = useState(0);
+
   const closeAllDropdowns = () => {
-    // 드롭다운 컴포넌트들이 자체적으로 관리
+    setForceCloseKey((prev) => prev + 1);
   };
 
   const handleRegionSelect = (
@@ -38,7 +40,7 @@ const ClubFilterBar = ({
   ) => {
     onRegionChange(region, isAllSelected);
     if (isAllSelected || !region) {
-      onDistrictChange(undefined, undefined, false);
+      onDistrictChange(undefined, undefined);
     }
   };
 
@@ -51,6 +53,7 @@ const ClubFilterBar = ({
           onSelect={handleRegionSelect}
           isAllSelected={!selectedRegion}
           onCloseOtherDropdowns={closeAllDropdowns}
+          forceCloseKey={forceCloseKey}
         />
       </div>
 
@@ -64,6 +67,7 @@ const ClubFilterBar = ({
           }
           isAllSelected={!selectedDistrict}
           onCloseOtherDropdowns={closeAllDropdowns}
+          forceCloseKey={forceCloseKey}
         />
       </div>
 
@@ -74,15 +78,20 @@ const ClubFilterBar = ({
           onSelect={(age) => onAgeChange(age)}
           isAllSelected={!selectedAgeGroup}
           onCloseOtherDropdowns={closeAllDropdowns}
+          forceCloseKey={forceCloseKey}
         />
       </div>
 
       {/* 검색어 입력 */}
       <div className="relative flex-1">
+        <label className="sr-only" htmlFor="club-search-input">
+          검색어
+        </label>
         <div className="absolute left-3 top-1/2 -translate-y-1/2">
           <Search size={16} className="text-gray-500" />
         </div>
         <input
+          id="club-search-input"
           type="text"
           placeholder="검색어를 입력하세요"
           value={searchKeyword}

@@ -29,10 +29,14 @@ const ActivityInfoSection = ({
       <div className="grid gap-4 md:grid-cols-3">
         {/* 모집인원 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-800">
+          <label
+            className="block text-sm font-medium text-gray-800"
+            htmlFor="max-members"
+          >
             모집인원
           </label>
           <input
+            id="max-members"
             type="number"
             placeholder="숫자를 입력해주세요"
             value={maxMembers}
@@ -43,10 +47,14 @@ const ActivityInfoSection = ({
 
         {/* 활동빈도 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-800">
+          <label
+            className="block text-sm font-medium text-gray-800"
+            htmlFor="activity-days"
+          >
             활동빈도
           </label>
           <ActivityDaysSelector
+            id="activity-days"
             activeDays={activeDays}
             onToggle={onToggleDay}
           />
@@ -54,10 +62,14 @@ const ActivityInfoSection = ({
 
         {/* 실력수준 */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-800">
+          <label
+            className="block text-sm font-medium text-gray-800"
+            htmlFor="skill-level"
+          >
             실력수준
           </label>
           <SkillLevelDropdown
+            id="skill-level"
             skillLevels={skillLevels}
             selectedSkill={selectedSkill}
             onSelect={onSkillChange}

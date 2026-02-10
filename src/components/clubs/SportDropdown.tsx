@@ -12,6 +12,7 @@ interface SportDropdownProps {
   onSelect: (sportId: number | undefined) => void;
   onCloseOtherDropdowns?: () => void;
   width?: string;
+  id?: string;
 }
 
 const SportDropdown = ({
@@ -19,7 +20,8 @@ const SportDropdown = ({
   selectedSport,
   onSelect,
   onCloseOtherDropdowns,
-  width = "100%"
+  width = "100%",
+  id
 }: SportDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -36,6 +38,7 @@ const SportDropdown = ({
   return (
     <div className="relative" style={{ width }}>
       <button
+        id={id}
         type="button"
         onClick={handleToggle}
         className="relative flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#999999] px-[10px] py-1 text-sm text-white"

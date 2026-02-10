@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { getDistrictsByRegion } from "@/utils/regions";
 
@@ -13,6 +13,8 @@ interface DistrictDropdownProps {
   isAllSelected?: boolean;
   onCloseOtherDropdowns?: () => void;
   width?: string;
+  forceCloseKey?: number;
+  id?: string;
 }
 
 const DistrictDropdown = ({
@@ -21,9 +23,39 @@ const DistrictDropdown = ({
   onSelect,
   isAllSelected = false,
   onCloseOtherDropdowns,
-  width = "100%"
+  width = "100%",
+  forceCloseKey,
+  id
 }: DistrictDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
+  // 부모에서 강제 닫기
+  useEffect(() => {
+    if (forceCloseKey !== undefined) {
+      setIsOpen(false);
+    }
+  }, [forceCloseKey]);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -40,8 +72,9 @@ const DistrictDropdown = ({
   };
 
   return (
-    <div className="relative" style={{ width }}>
+    <div className="relative" style={{ width }} ref={dropdownRef}>
       <button
+        id={id}
         type="button"
         onClick={handleToggle}
         className="relative flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#999999] px-[10px] py-1 text-sm text-white"

@@ -23,22 +23,23 @@ export interface ClubsQueryParams {
   cursor?: string;
 }
 
+export interface ClubOperator {
+  name: string;
+  introduce: string;
+}
+
 export interface ClubDetail {
-  id: string;
-  sportType: string;
-  facilityName: string;
-  isPublic: boolean;
-  city: string;
-  district: string;
-  address: string;
-  cost: string;
-  imageUrl: string;
-  operatingHours: string;
-  introduction: string;
-  information: string;
-  usageGuide: string;
+  id: number;
+  clubName: string;
+  clubPhotoUrl?: string;
+  operator: ClubOperator;
+  region: string;
+  level: string;
+  maxMemberCount: number;
+  currentMemberCount: number;
+  joinRequirement: string;
   contact: string;
-  homepageUrl: string;
+  homePageUrl?: string;
 }
 
 export interface ClubDetailResponse {

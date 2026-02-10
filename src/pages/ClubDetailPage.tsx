@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { getClubDetail, joinClub } from "@/api/clubs";
 import type { ClubDetail } from "@/types/clubs";
+import SuccessModal from "@/components/clubs/SuccessModal";
 
 const ClubDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +16,11 @@ const ClubDetailPage = () => {
   // API로 동호회 상세 정보 가져오기
   useEffect(() => {
     const fetchClubDetail = async () => {
-      if (!id) return;
+      if (!id) {
+        setError("유효하지 않은 동호회 주소입니다.");
+        setIsLoading(false);
+        return;
+      }
 
       setIsLoading(true);
       setError(null);
@@ -36,6 +41,26 @@ const ClubDetailPage = () => {
 
     fetchClubDetail();
   }, [id]);
+
+  // 잘못된 경로로 들어와 id가 없는 경우 처리
+  if (!id) {
+    return (
+      <main className="w-full pt-4 pb-10">
+        <div className="py-10 text-center">
+          <p className="mb-4 text-lg font-semibold text-red-500">
+            유효하지 않은 동호회 주소입니다.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/clubs")}
+            className="rounded-lg bg-[#3f6fff] px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#2e5fdf]"
+          >
+            동호회 찾기로 이동
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   // 로딩 중이거나 데이터가 없을 때
   if (isLoading) {
@@ -60,31 +85,31 @@ const ClubDetailPage = () => {
     );
   }
 
-  // API 응답을 기존 구조에 맞게 변환
+  // API 응답을 기존 구조에 맞게 변환 (임시 하드코딩 값 제거)
   const displayData = {
     name: clubData.facilityName || `${clubData.sportType} 동호회`,
     location: `${clubData.city} ${clubData.district}`,
-    currentCount: 10, // API에 없으므로 임시값
-    maxCount: 20, // API에 없으므로 임시값
+    currentCount: undefined as number | undefined,
+    maxCount: undefined as number | undefined,
     operator: {
-      name: "운영자", // API에 없으므로 임시값
-      intro: clubData.contact || "--"
+      name: undefined as string | undefined,
+      intro: clubData.contact || ""
     },
     introduction: clubData.introduction || "",
     activityInfo: {
       area: `${clubData.city} ${clubData.district}`,
-      skillLevel: clubData.sportType,
-      recruitment: "20명 이내" // API에 없으므로 임시값
+      skillLevel: clubData.sportType || "",
+      recruitment: undefined as string | undefined
     },
     conditions: clubData.usageGuide
       ? clubData.usageGuide.split("\n").filter((c) => c.trim())
-      : ["테니스 초보자 환영", "매너 필수", "주 2회 참여 가능자"],
+      : [],
     members: [] as Array<{
       name: string;
       area: string;
       joinDate: string;
       intro: string;
-    }>, // API에 없으므로 빈 배열
+    }>,
     imageUrl: clubData.imageUrl,
     information: clubData.information,
     operatingHours: clubData.operatingHours,
@@ -161,15 +186,18 @@ const ClubDetailPage = () => {
 
             {/* 현재인원 및 가입하기 버튼 */}
             <div className="mt-auto space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">현재인원</span>
-                <span className="text-sm text-gray-700">
-                  <span className="text-[#1EC72F]">
-                    {displayData.currentCount}
-                  </span>{" "}
-                  / {displayData.maxCount} 명
-                </span>
-              </div>
+              {displayData.currentCount !== undefined &&
+                displayData.maxCount !== undefined && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">현재인원</span>
+                    <span className="text-sm text-gray-700">
+                      <span className="text-[#1EC72F]">
+                        {displayData.currentCount}
+                      </span>{" "}
+                      / {displayData.maxCount} 명
+                    </span>
+                  </div>
+                )}
 
               <button
                 type="button"
@@ -182,22 +210,28 @@ const ClubDetailPage = () => {
           </div>
 
           {/* 운영자 정보 카드 */}
-          <div className="rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
-            <h2 className="mb-4 text-lg font-bold text-gray-900">
-              운영자 정보
-            </h2>
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  이름: {displayData.operator.name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  한줄소개: {displayData.operator.intro}
-                </p>
+          {(displayData.operator.name || displayData.operator.intro) && (
+            <div className="rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+              <h2 className="mb-4 text-lg font-bold text-gray-900">
+                운영자 정보
+              </h2>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 rounded-full bg-gray-300" />
+                <div>
+                  {displayData.operator.name && (
+                    <p className="text-sm font-medium text-gray-900">
+                      이름: {displayData.operator.name}
+                    </p>
+                  )}
+                  {displayData.operator.intro && (
+                    <p className="text-sm text-gray-600">
+                      한줄소개: {displayData.operator.intro}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -214,8 +248,12 @@ const ClubDetailPage = () => {
           <h2 className="mb-4 text-xl font-bold text-gray-900">활동 정보</h2>
           <div className="space-y-2 text-gray-700">
             <p>활동지역: {displayData.activityInfo.area}</p>
-            <p>실력 수준: {displayData.activityInfo.skillLevel}</p>
-            <p>모집인원: {displayData.activityInfo.recruitment}</p>
+            {displayData.activityInfo.skillLevel && (
+              <p>실력 수준: {displayData.activityInfo.skillLevel}</p>
+            )}
+            {displayData.activityInfo.recruitment && (
+              <p>모집인원: {displayData.activityInfo.recruitment}</p>
+            )}
             {displayData.operatingHours && (
               <p>운영시간: {displayData.operatingHours}</p>
             )}
@@ -228,15 +266,19 @@ const ClubDetailPage = () => {
         <div className="rounded-lg bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
           <h2 className="mb-4 text-xl font-bold text-gray-900">참여 조건</h2>
           <div className="space-y-2">
-            {displayData.conditions.map((condition, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-gray-700"
-              >
-                <Check size={16} className="shrink-0 text-[#3f6fff]" />
-                <span>{condition}</span>
-              </div>
-            ))}
+            {displayData.conditions.length > 0 ? (
+              displayData.conditions.map((condition, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 text-gray-700"
+                >
+                  <Check size={16} className="shrink-0 text-[#3f6fff]" />
+                  <span>{condition}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">조건 정보가 없습니다.</p>
+            )}
           </div>
         </div>
       </section>
@@ -279,71 +321,25 @@ const ClubDetailPage = () => {
       </section>
 
       {/* 가입 신청 완료 모달 */}
-      {isJoinModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="relative w-[480px] rounded-lg bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 닫기 버튼 */}
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
-            >
-              <X size={20} />
-            </button>
-
-            {/* 성공 아이콘 */}
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                <Check size={32} className="text-blue-500" />
-              </div>
-            </div>
-
-            {/* 제목 */}
-            <h2 className="mb-4 text-center text-xl font-bold text-gray-900">
-              가입 신청 완료
-            </h2>
-
-            {/* 안내 문구 */}
-            <div className="mb-4 space-y-2 text-center text-sm text-gray-700">
-              <p>동호회 가입 신청이 정상적으로 접수되었습니다.</p>
-              <p>승인까지 1~3일 정도 소요될 수 있어요.</p>
-            </div>
-
-            {/* 상태 확인 안내 박스 */}
-            <div className="mb-6 rounded-lg bg-blue-50 p-4 text-sm text-gray-700">
-              <p className="text-center">
-                가입 진행 상태는
-                <br />
-                마이페이지 &gt; MY 동호회에서 확인할 수 있어요.
-              </p>
-            </div>
-
-            {/* 버튼 */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-800 transition-colors duration-200 hover:bg-gray-50"
-              >
-                닫기
-              </button>
-              <button
-                type="button"
-                onClick={handleGoToMyClubs}
-                className="flex-1 rounded-lg bg-[#3f6fff] px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#2e5fdf]"
-              >
-                MY 동호회로 이동
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={isJoinModalOpen}
+        onClose={handleCloseModal}
+        title="가입 신청 완료"
+        message={
+          <>
+            <p>동호회 가입 신청이 정상적으로 접수되었습니다.</p>
+            <p>승인까지 1~3일 정도 소요될 수 있어요.</p>
+            <br />
+            <p>
+              가입 진행 상태는
+              <br />
+              마이페이지 &gt; MY 동호회에서 확인할 수 있어요.
+            </p>
+          </>
+        }
+        onConfirm={handleGoToMyClubs}
+        confirmText="MY 동호회로 이동"
+      />
     </main>
   );
 };

@@ -49,10 +49,14 @@ const BasicInfoSection = ({
         {/* 첫 번째 줄: 동호회 이름과 종목 선택 */}
         <div className="flex gap-4">
           <div className="flex-1 space-y-2">
-            <label className="block text-sm font-medium text-gray-800">
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor="club-name"
+            >
               동호회 이름
             </label>
             <input
+              id="club-name"
               type="text"
               placeholder="예: 초보 테니스 동호회"
               value={clubName}
@@ -61,10 +65,14 @@ const BasicInfoSection = ({
             />
           </div>
           <div className="w-[222px] space-y-2">
-            <label className="block text-sm font-medium text-gray-800">
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor="sport-select"
+            >
               종목 선택
             </label>
             <SportDropdown
+              id="sport-select"
               sports={sports}
               selectedSport={selectedSport}
               onSelect={onSportChange}
@@ -78,13 +86,17 @@ const BasicInfoSection = ({
         <div className="flex gap-4">
           {/* 활동지역 (시/도 선택, 구 선택) */}
           <div className="flex-1 space-y-2">
-            <label className="block text-sm font-medium text-gray-800">
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor="region-select"
+            >
               활동지역
             </label>
             <div className="flex w-full items-center gap-2">
               {/* 시/도 선택 */}
               <div style={{ width: "calc(50% - 4px)" }}>
                 <RegionDropdown
+                  id="region-select"
                   selectedRegion={selectedRegion}
                   onSelect={onRegionChange}
                   isAllSelected={isRegionAllSelected}
@@ -95,6 +107,7 @@ const BasicInfoSection = ({
               {/* 구 선택 */}
               <div style={{ width: "calc(50% - 4px)" }}>
                 <DistrictDropdown
+                  id="district-select"
                   selectedRegion={selectedRegion}
                   selectedDistrict={selectedDistrict}
                   onSelect={onDistrictChange}
@@ -108,10 +121,14 @@ const BasicInfoSection = ({
 
           {/* 연령대 */}
           <div className="w-[222px] space-y-2">
-            <label className="block text-sm font-medium text-gray-800">
+            <label
+              className="block text-sm font-medium text-gray-800"
+              htmlFor="age-select"
+            >
               연령대
             </label>
             <AgeDropdown
+              id="age-select"
               selectedAgeGroup={selectedAgeGroup}
               onSelect={onAgeChange}
               isAllSelected={isAgeAllSelected}

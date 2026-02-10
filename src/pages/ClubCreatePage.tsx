@@ -127,28 +127,65 @@ const ClubCreatePage = () => {
   };
 
   // 이미지 파일 선택 처리
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newFiles: File[] = [];
-
     // 최대 5장 제한
     const remainingSlots = 5 - imageFiles.length;
-    const filesToAdd = Array.from(files).slice(0, remainingSlots);
+    const filesToAdd = Array.from(files)
+      .slice(0, remainingSlots)
+      .filter((file) => file.type.startsWith("image/"));
 
-    filesToAdd.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        newFiles.push(file);
+    if (filesToAdd.length === 0) return;
+
+    const readFileAsDataURL = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result as string]);
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+          } else {
+            reject(new Error("이미지 데이터를 읽을 수 없습니다."));
+          }
+        };
+        reader.onerror = () => {
+          console.error("이미지 읽기 중 오류:", reader.error);
+          reject(reader.error || new Error("이미지 읽기 오류"));
         };
         reader.readAsDataURL(file);
-      }
-    });
+      });
 
-    setImageFiles((prev) => [...prev, ...newFiles]);
+    try {
+      const results = await Promise.all(
+        filesToAdd.map(async (file) => {
+          try {
+            const preview = await readFileAsDataURL(file);
+            return { file, preview };
+          } catch {
+            // 읽기 실패한 파일은 건너뜀
+            return null;
+          }
+        })
+      );
+
+      const successful = results.filter(
+        (item): item is { file: File; preview: string } => item !== null
+      );
+
+      if (successful.length === 0) return;
+
+      setImageFiles((prev) => [
+        ...prev,
+        ...successful.map((item) => item.file)
+      ]);
+      setImagePreviews((prev) => [
+        ...prev,
+        ...successful.map((item) => item.preview)
+      ]);
+    } catch (error) {
+      console.error("이미지 처리 중 오류가 발생했습니다:", error);
+    }
   };
 
   // 이미지 삭제
@@ -199,8 +236,10 @@ const ClubCreatePage = () => {
       alert("연령대를 선택해주세요.");
       return;
     }
-    if (!maxMembers || Number(maxMembers) <= 0) {
-      alert("모집인원을 입력해주세요.");
+
+    const parsedMaxMembers = Number(maxMembers);
+    if (!Number.isFinite(parsedMaxMembers) || parsedMaxMembers <= 0) {
+      alert("모집인원은 0보다 큰 숫자로 입력해주세요.");
       return;
     }
     if (activeDays.length === 0) {
@@ -255,13 +294,13 @@ const ClubCreatePage = () => {
             district: district,
             ageGroup: ageGroupEnum,
             images: imageFiles.length > 0 ? imageFiles : undefined,
-            maxMembers: Number(maxMembers),
+            maxMembers: parsedMaxMembers,
             activityFrequency: getActivityFrequency(),
             level: skillLevelEnum,
             description: description.trim(),
             joinRequirement: joinRequirement.trim(),
             contact: contact.trim(),
-            hompageUrl: homepageUrl.trim() || undefined
+            homepageUrl: homepageUrl.trim() || undefined
           },
           token
         );
@@ -288,13 +327,13 @@ const ClubCreatePage = () => {
             ageGroup: ageGroupEnum,
             imageURL:
               uploadedImageURLs.length > 0 ? uploadedImageURLs : undefined,
-            maxMembers: Number(maxMembers),
+            maxMembers: parsedMaxMembers,
             activityFrequency: getActivityFrequency(),
             level: skillLevelEnum,
             description: description.trim(),
             joinRequirement: joinRequirement.trim(),
             contact: contact.trim(),
-            hompageUrl: homepageUrl.trim() || undefined
+            homepageUrl: homepageUrl.trim() || undefined
           },
           token
         );

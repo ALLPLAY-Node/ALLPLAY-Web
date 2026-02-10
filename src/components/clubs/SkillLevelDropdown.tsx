@@ -6,13 +6,15 @@ interface SkillLevelDropdownProps {
   selectedSkill?: string;
   onSelect: (skill: string | undefined) => void;
   onCloseOtherDropdowns?: () => void;
+  id?: string;
 }
 
 const SkillLevelDropdown = ({
   skillLevels,
   selectedSkill,
   onSelect,
-  onCloseOtherDropdowns
+  onCloseOtherDropdowns,
+  id
 }: SkillLevelDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -29,6 +31,7 @@ const SkillLevelDropdown = ({
   return (
     <div className="relative">
       <button
+        id={id}
         type="button"
         onClick={handleToggle}
         className="relative flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[#999999] px-[10px] py-1 text-sm text-white"

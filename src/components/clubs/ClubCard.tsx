@@ -51,9 +51,13 @@ const ClubCard = ({ club, onJoinSuccess }: ClubCardProps) => {
     >
       {/* 상단 이미지 영역 */}
       <div className="relative h-[244px] w-[468px] rounded-t-[24px] bg-[#e5e5e5]">
-        <div className="absolute right-4 top-4 inline-flex items-center rounded-full bg-[#00c851] px-3 py-1.5 text-xs font-semibold text-white">
-          가입 가능
-        </div>
+        {typeof club.currentCount === "number" &&
+          typeof club.maxCount === "number" &&
+          club.currentCount < club.maxCount && (
+            <div className="absolute right-4 top-4 inline-flex items-center rounded-full bg-[#00c851] px-3 py-1.5 text-xs font-semibold text-white">
+              가입 가능
+            </div>
+          )}
       </div>
 
       {/* 하단 정보 영역 */}
@@ -75,11 +79,11 @@ const ClubCard = ({ club, onJoinSuccess }: ClubCardProps) => {
         <div className="space-y-1.5 text-sm text-gray-700">
           <div className="flex items-center gap-1">
             <img src={노트} alt="노트" className="h-4 w-4 shrink-0" />
-            <span>동호회 한 줄 소개</span>
+            <span>{club.description || ""}</span>
           </div>
           <div className="flex items-center gap-1">
             <img src={모임장소} alt="모임 장소" className="h-4 w-4 shrink-0" />
-            <span>모임 장소</span>
+            <span>{club.place || ""}</span>
           </div>
           <div className="flex items-center gap-1">
             <img src={사람} alt="사람" className="h-4 w-4 shrink-0" />
