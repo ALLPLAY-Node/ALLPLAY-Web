@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import ClubCard from "@/components/layout/mypage/ClubCard";
-import ClubDetailPanel from "@/components/layout/mypage/ClubDetailPanel";
-import ManagedClubDetailPanel from "@/components/layout/mypage/ManagedClubDetailPanel";
-import type { ClubCardVariant } from "@/components/layout/mypage/ClubCard";
+﻿import { useEffect, useRef } from "react";
+import ClubCard from "@/components/mypage/ClubCard";
+import ClubDetailPanel from "@/components/mypage/ClubDetailPanel";
+import ManagedClubDetailPanel from "@/components/mypage/ManagedClubDetailPanel";
+import type { ClubCardVariant } from "@/components/mypage/ClubCard";
 import type { ClubSummary } from "@/types/club";
 
 type ClubSectionProps = {

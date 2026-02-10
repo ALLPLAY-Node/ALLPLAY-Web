@@ -1,4 +1,4 @@
-const MyPageProfileCard = () => {
+﻿const MyPageProfileCard = () => {
   // 프로필 API 연동 전까지 사용하는 기본/임시 프로필 카드
   return (
     <aside className="border border-border rounded-xl px-4 py-6 h-fit lg:row-start-2">

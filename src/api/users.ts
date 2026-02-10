@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/types/api";
+﻿import type { ApiResponse } from "@/types/api";
 import type { ClubListResponse } from "@/types/club";
 import {
   buildAuthHeaders,
@@ -73,6 +73,38 @@ export type IssuePresignedUrlSuccess = {
 
 type IssuePresignedUrlResponse = ApiResponse<IssuePresignedUrlSuccess>;
 
+export type MyRegion = {
+  city?: string;
+  district?: string;
+};
+
+export type MyInfo = {
+  id?: string;
+  userId?: string;
+  birth?: string;
+  profilePhotoUrl?: string;
+  introduce?: string;
+  region?: MyRegion;
+  // NOTE: 오탈자/확장 가능성: API 명세에 없지만 화면에서 필요한 필드
+  name?: string;
+  phoneNumber?: string;
+  gender?: string;
+};
+
+type GetMyInfoResponse = ApiResponse<MyInfo>;
+
+export type UpdateMyInfoPayload = {
+  name: string;
+  phoneNumber: string;
+  introduce: string;
+  profilePhotoUrl: string;
+  regionId: number;
+};
+
+type UpdateMyInfoResponse = ApiResponse<{
+  updatedAt: string;
+}>;
+
 export const getMyClubs = async () => {
   const res = await fetch(`${API_BASE_URL}/users/me/clubs`, {
     method: "GET",
@@ -116,6 +148,39 @@ export const leaveClub = async (clubId: string) => {
   }
 
   return body as ApiResponse<Record<string, never>>;
+};
+
+// API: GET /users/me
+export const getMyInfo = async () => {
+  const res = await fetch(`${API_BASE_URL}/users/me`, {
+    method: "GET",
+    headers: buildAuthHeaders()
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(getResponseMessage(body, "Failed to fetch my info"));
+  }
+
+  return body as GetMyInfoResponse;
+};
+
+// API: PUT /users/me
+export const updateMyInfo = async (payload: UpdateMyInfoPayload) => {
+  const res = await fetch(`${API_BASE_URL}/users/me`, {
+    method: "PUT",
+    headers: buildHeaders(),
+    body: JSON.stringify(payload)
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(getResponseMessage(body, "Failed to update my info"));
+  }
+
+  return body as UpdateMyInfoResponse;
 };
 
 // API: GET /users/me/reviews

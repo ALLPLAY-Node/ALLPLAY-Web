@@ -28,7 +28,7 @@ const ClubDetailPanel = ({
 
   return (
     <div
-      // 선택된 카드에만 상세 패널이 펼쳐지도록 height/opacity 애니메이션을 준다.
+      // 선택된 카드에만 상세 패널이 펼쳐지도록 height/opacity 애니메이션 효과부여
       className={`overflow-hidden transition-all duration-300 ease-out ${
         club ? "max-h-[900px] opacity-100" : "max-h-0 opacity-0"
       }`}

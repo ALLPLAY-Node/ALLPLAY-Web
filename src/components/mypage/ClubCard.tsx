@@ -32,7 +32,6 @@ const ClubCard = ({ club, variant, onClick }: ClubCardProps) => {
       }
       onClick={isClickable ? () => onClick?.(club) : undefined}
       onKeyDown={(event) => {
-        // 키보드 접근성(Enter/Space)으로도 카드 선택 가능하게 처리한다.
         if (!isClickable) {
           return;
         }
