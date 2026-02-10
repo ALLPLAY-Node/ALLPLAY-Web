@@ -10,12 +10,24 @@ export type ReviewListEntry = {
   photos: ReviewPhoto[];
 };
 
+type EditablePhotoSlot = {
+  photoId: string;
+  photoUrl: string;
+  localFile?: File;
+} | null;
+
+export type ReviewUpdateDraftPayload = {
+  text: string;
+  photos: ReviewPhoto[];
+  localFiles: File[];
+};
+
 type MyReviewSectionProps = {
   reviews: ReviewListEntry[];
   isLoading?: boolean;
   onUpdateReview?: (
     reviewId: string,
-    payload: { text: string; photos: ReviewPhoto[] }
+    payload: ReviewUpdateDraftPayload
   ) => Promise<void>;
 };
 
@@ -36,11 +48,15 @@ const formatReviewDate = (value: string) => {
   return `${year}. ${month}. ${day}`;
 };
 
-const getPhotoSlots = (photos: ReviewPhoto[]) => {
-  const slots: Array<ReviewPhoto | null> = photos.slice(0, 3);
+const toPhotoSlots = (photos: ReviewPhoto[]) => {
+  const slots: EditablePhotoSlot[] = photos
+    .slice(0, 3)
+    .map((photo) => ({ photoId: photo.photoId, photoUrl: photo.photoUrl }));
+
   while (slots.length < 3) {
     slots.push(null);
   }
+
   return slots;
 };
 
@@ -49,10 +65,9 @@ const scrollItemToViewportCenter = (node: HTMLDivElement) => {
   const currentTop = window.scrollY;
   const centeredTop =
     currentTop + rect.top - (window.innerHeight - rect.height) / 2;
-  const targetTop = Math.max(0, centeredTop);
 
   window.scrollTo({
-    top: targetTop,
+    top: Math.max(0, centeredTop),
     behavior: "smooth"
   });
 };
@@ -65,15 +80,17 @@ const MyReviewSection = ({
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
-  const [draftPhotoSlots, setDraftPhotoSlots] = useState<
-    Array<ReviewPhoto | null>
-  >([null, null, null]);
+  const [draftPhotoSlots, setDraftPhotoSlots] = useState<EditablePhotoSlot[]>([
+    null,
+    null,
+    null
+  ]);
   const [isUpdating, setIsUpdating] = useState(false);
+
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const sortedReviews = useMemo(() => {
-    // 최신 등록 날짜 내림차순
     return [...reviews].sort(
       (a, b) => toTimestamp(b.createdAt) - toTimestamp(a.createdAt)
     );
@@ -129,16 +146,12 @@ const MyReviewSection = ({
   useEffect(() => {
     return () => {
       draftPhotoSlots.forEach((photo) => {
-        if (photo?.photoUrl?.startsWith("blob:")) {
+        if (photo?.photoUrl.startsWith("blob:")) {
           URL.revokeObjectURL(photo.photoUrl);
         }
       });
     };
   }, [draftPhotoSlots]);
-
-  const enterReadMode = () => {
-    setEditingReviewId(null);
-  };
 
   const closeDetail = () => {
     setSelectedReviewId(null);
@@ -151,7 +164,7 @@ const MyReviewSection = ({
     setSelectedReviewId(review.reviewId);
     setEditingReviewId(null);
     setDraftText(review.text);
-    setDraftPhotoSlots(getPhotoSlots(review.photos));
+    setDraftPhotoSlots(toPhotoSlots(review.photos));
   };
 
   const handleToggleReview = (review: ReviewListEntry) => {
@@ -159,27 +172,26 @@ const MyReviewSection = ({
       closeDetail();
       return;
     }
-
     openDetail(review);
   };
 
   const handleStartEdit = (review: ReviewListEntry) => {
     setEditingReviewId(review.reviewId);
     setDraftText(review.text);
-    setDraftPhotoSlots(getPhotoSlots(review.photos));
+    setDraftPhotoSlots(toPhotoSlots(review.photos));
   };
 
   const handleCancelEdit = (review: ReviewListEntry) => {
     setDraftText(review.text);
-    setDraftPhotoSlots(getPhotoSlots(review.photos));
-    enterReadMode();
+    setDraftPhotoSlots(toPhotoSlots(review.photos));
+    setEditingReviewId(null);
   };
 
   const handleRemovePhoto = (slotIndex: number) => {
     setDraftPhotoSlots((prev) => {
-      const removed = prev[slotIndex];
-      if (removed?.photoUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(removed.photoUrl);
+      const target = prev[slotIndex];
+      if (target?.photoUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(target.photoUrl);
       }
 
       const next = [...prev];
@@ -201,17 +213,16 @@ const MyReviewSection = ({
       return;
     }
 
-    // TODO: 백엔드 이미지 업로드 API 연동 후, 여기에서 파일 업로드를 수행하고
-    // 서버가 내려주는 photoId/photoUrl 값을 슬롯 상태로 치환한다.
     const previewUrl = URL.createObjectURL(file);
-    const localPhoto: ReviewPhoto = {
+    const localPhoto: EditablePhotoSlot = {
       photoId: `local-${Date.now()}-${slotIndex}`,
-      photoUrl: previewUrl
+      photoUrl: previewUrl,
+      localFile: file
     };
 
     setDraftPhotoSlots((prev) => {
       const replaced = prev[slotIndex];
-      if (replaced?.photoUrl?.startsWith("blob:")) {
+      if (replaced?.photoUrl.startsWith("blob:")) {
         URL.revokeObjectURL(replaced.photoUrl);
       }
 
@@ -233,18 +244,34 @@ const MyReviewSection = ({
       return;
     }
 
+    const existingPhotos: ReviewPhoto[] = [];
+    const localFiles: File[] = [];
+
+    draftPhotoSlots.forEach((slot) => {
+      if (!slot) {
+        return;
+      }
+
+      if (slot.localFile) {
+        localFiles.push(slot.localFile);
+        return;
+      }
+
+      existingPhotos.push({
+        photoId: slot.photoId,
+        photoUrl: slot.photoUrl
+      });
+    });
+
     try {
       setIsUpdating(true);
-      const nextPhotos = draftPhotoSlots.filter(
-        (photo): photo is ReviewPhoto => photo !== null
-      );
-
       await onUpdateReview?.(review.reviewId, {
         text: nextText,
-        photos: nextPhotos
+        photos: existingPhotos,
+        localFiles
       });
       setDraftText(nextText);
-      enterReadMode();
+      setEditingReviewId(null);
     } catch (error) {
       const message =
         error instanceof Error
@@ -279,7 +306,7 @@ const MyReviewSection = ({
             const isEditing = editingReviewId === review.reviewId;
             const photoSlots = isEditing
               ? draftPhotoSlots
-              : getPhotoSlots(review.photos);
+              : toPhotoSlots(review.photos);
             const previewText = isOpen ? draftText : review.text;
 
             return (
@@ -345,7 +372,7 @@ const MyReviewSection = ({
                       {photoSlots.map((photo, index) =>
                         photo ? (
                           <div
-                            key={photo.photoId}
+                            key={`${photo.photoId}-${index}`}
                             className="relative h-[160px] w-full rounded-md bg-[#B3B3B3]"
                           >
                             <img

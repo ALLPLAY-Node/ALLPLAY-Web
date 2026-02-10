@@ -5,21 +5,23 @@ import ClubSection from "@/components/layout/mypage/ClubSection";
 import LeaveClubBox from "@/components/layout/mypage/LeaveClubBox";
 import LeaveClubDoneBox from "@/components/layout/mypage/LeaveClubDoneBox";
 import MyReviewSection, {
-  type ReviewListEntry
+  type ReviewListEntry,
+  type ReviewUpdateDraftPayload
 } from "@/components/layout/mypage/MyReviewSection";
 import {
   getManagedClubs,
   getMyClubs,
   getMyReviews,
+  issuePresignedUrl,
   leaveClub,
   updateMyReview,
+  uploadFileToPresignedUrl,
   type MyReviewListItem,
   type ReviewPhoto
 } from "@/api/users";
-import { getApiResultType } from "@/api/common";
+import { getApiResultType, getResponseMessage } from "@/api/common";
 import type { ClubSummary } from "@/types/club";
 
-// 실제 탈퇴 API 실행 여부 (임시 연동 단계에서는 false 유지)
 const ENABLE_LEAVE_CLUB_API = false;
 const ENABLE_PLACEHOLDER_CLUBS = true;
 const ENABLE_REVIEW_API = false;
@@ -91,7 +93,8 @@ const mockReviews: ReviewListEntry[] = [
 ];
 
 const toReviewEntry = (item: MyReviewListItem): ReviewListEntry | null => {
-  if (!item.reviewId || !item.facilityName || !item.createdAt) {
+  const createdAt = item.createdAt ?? item.created_at;
+  if (!item.reviewId || !item.facilityName || !createdAt) {
     return null;
   }
 
@@ -100,9 +103,22 @@ const toReviewEntry = (item: MyReviewListItem): ReviewListEntry | null => {
     facilityId: item.facilityID ?? item.facilityId ?? "",
     facilityName: item.facilityName,
     text: item.text ?? "",
-    createdAt: item.createdAt,
+    createdAt,
     photos: item.photos ?? []
   };
+};
+
+const getFileExtension = (file: File) => {
+  const splitByDot = file.name.split(".");
+  if (splitByDot.length > 1) {
+    return splitByDot[splitByDot.length - 1].toLowerCase();
+  }
+  return "jpg";
+};
+
+const createReviewUploadFileName = (file: File, index: number) => {
+  const extension = getFileExtension(file);
+  return `review-${Date.now()}-${index}.${extension}`;
 };
 
 const MyPage = () => {
@@ -139,13 +155,6 @@ const MyPage = () => {
       const joinedResultType = getApiResultType(joinedRes);
       const managedResultType = getApiResultType(managedRes);
 
-      if (joinedResultType !== "SUCCESS") {
-        console.error(joinedRes);
-      }
-      if (managedResultType !== "SUCCESS") {
-        console.error(managedRes);
-      }
-
       setJoinedClubs(
         joinedResultType === "SUCCESS" ? (joinedRes.success?.items ?? []) : []
       );
@@ -167,6 +176,7 @@ const MyPage = () => {
 
     setIsReviewsLoading(true);
     try {
+      // Connected API: GET /users/me/reviews
       const response = await getMyReviews();
       const resultType = getApiResultType(response);
 
@@ -198,6 +208,7 @@ const MyPage = () => {
     ENABLE_PLACEHOLDER_CLUBS && !isClubsLoading && joinedClubs.length === 0
       ? placeholderClubs
       : joinedClubs;
+
   const managedList =
     ENABLE_PLACEHOLDER_CLUBS && !isClubsLoading && managedClubs.length === 0
       ? managedPlaceholders
@@ -235,9 +246,9 @@ const MyPage = () => {
       if (ENABLE_LEAVE_CLUB_API) {
         const response = await leaveClub(targetClubId);
         const resultType = getApiResultType(response);
-
         if (resultType !== "SUCCESS") {
-          throw new Error(response.message ?? "동호회 탈퇴 실패");
+          // 오탈자 확인: message 대신 messege가 내려올 수 있어 공통 파서를 사용한다.
+          throw new Error(getResponseMessage(response, "동호회 탈퇴 실패"));
         }
       }
 
@@ -267,26 +278,75 @@ const MyPage = () => {
 
     setCompletedLeaveClubId(null);
     setIsLeaveDoneOpen(false);
-
     if (ENABLE_LEAVE_CLUB_API) {
       void fetchClubs();
     }
   };
 
+  const uploadLocalFilesToStorage = async (files: File[]) => {
+    if (files.length === 0) {
+      return [] as ReviewPhoto[];
+    }
+
+    const uploadedPhotos = await Promise.all(
+      files.map(async (file, index) => {
+        const fileName = createReviewUploadFileName(file, index);
+        const presignedResponse = await issuePresignedUrl({
+          domain: "reviews",
+          operation: "PUT",
+          fileName,
+          fileType: file.type || "image/jpeg"
+        });
+
+        const resultType = getApiResultType(presignedResponse);
+        if (resultType !== "SUCCESS") {
+          // 오탈자 확인: resultTyle/messege 호환을 위해 공통 파서를 사용한다.
+          throw new Error(
+            getResponseMessage(presignedResponse, "Presigned URL 발급 실패")
+          );
+        }
+
+        const presigned = presignedResponse.success;
+        if (!presigned?.url) {
+          throw new Error("Presigned URL 응답이 비어있습니다.");
+        }
+
+        const uploadedUrl = await uploadFileToPresignedUrl(file, presigned);
+
+        return {
+          // TODO: 백엔드가 photoId 생성 규칙을 제공하면 해당 값으로 교체
+          photoId: fileName,
+          photoUrl: uploadedUrl
+        };
+      })
+    );
+
+    return uploadedPhotos;
+  };
+
   const handleUpdateReview = async (
     reviewId: string,
-    payload: { text: string; photos: ReviewPhoto[] }
+    payload: ReviewUpdateDraftPayload
   ) => {
+    const { text, photos, localFiles } = payload;
+
     if (!ENABLE_REVIEW_API) {
-      // NOTE: DB 미연동 임시 동작
-      // 현재는 로컬 상태만 갱신해 수정 직후 화면에서 최신화된 것처럼 보이게 처리한다.
+      // NOTE: mock mode
+      // For local testing, attach selected files as local preview URLs.
+      const localPreviewPhotos: ReviewPhoto[] = localFiles.map(
+        (file, index) => ({
+          photoId: `local-${Date.now()}-${index}`,
+          photoUrl: URL.createObjectURL(file)
+        })
+      );
+
       setReviews((prev) =>
         prev.map((review) =>
           review.reviewId === reviewId
             ? {
                 ...review,
-                text: payload.text,
-                photos: payload.photos,
+                text,
+                photos: [...photos, ...localPreviewPhotos],
                 createdAt: new Date().toISOString()
               }
             : review
@@ -295,31 +355,43 @@ const MyPage = () => {
       return;
     }
 
-    const response = await updateMyReview(reviewId, payload);
+    // Connected flow:
+    // 1) Issue presigned URL
+    // 2) Upload local files directly to S3 via PUT
+    // 3) Send final photos[] to review update API
+    const uploadedPhotos = await uploadLocalFilesToStorage(localFiles);
+    const mergedPhotos = [...photos, ...uploadedPhotos];
+
+    // Connected API: PUT /users/me/reviews/{reviewId}
+    const response = await updateMyReview(reviewId, {
+      text,
+      photos: mergedPhotos
+    });
     const resultType = getApiResultType(response);
 
     if (resultType !== "SUCCESS") {
-      throw new Error(response.message ?? "리뷰 수정 실패");
+      // 오탈자 확인: message 대신 messege가 내려올 수 있어 공통 파서를 사용한다.
+      throw new Error(getResponseMessage(response, "리뷰 수정 실패"));
     }
 
-    // TODO: DB/API 저장 로직이 안정화되면 서버 재조회(fetchReviews)만으로 최신화하고,
-    // 아래 낙관적 갱신 로직은 제거해도 된다.
     const updatedAt = response.success?.updatedAt ?? new Date().toISOString();
+
+    // Keep optimistic update for immediate feedback.
     setReviews((prev) =>
       prev.map((review) =>
         review.reviewId === reviewId
           ? {
               ...review,
-              text: payload.text,
-              photos: payload.photos,
+              text,
+              photos: mergedPhotos,
               createdAt: updatedAt
             }
           : review
       )
     );
 
-    // TODO: 백엔드가 최종 저장값(정제된 text/photos/date)을 반환하면
-    // void fetchReviews(); 로 서버 기준 최신 데이터를 다시 동기화한다.
+    // TODO: once backend returns canonical review detail consistently,
+    // switch to `void fetchReviews();` to sync list from server source-of-truth.
   };
 
   return (
