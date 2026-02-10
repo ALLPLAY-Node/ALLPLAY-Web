@@ -15,19 +15,27 @@ export const router = createBrowserRouter([
         Component: HomePage
       },
       {
-        path: "/clubs",
+        path: "home",
+        Component: HomePage
+      },
+      {
+        path: "spots",
+        Component: HomePage
+      },
+      {
+        path: "clubs",
         Component: ClubsPage
       },
       {
-        path: "/clubs/new",
+        path: "clubs/new",
         Component: ClubCreatePage
       },
       {
-        path: "/clubs/:id",
+        path: "clubs/:id",
         Component: ClubDetailPage
       },
       {
-        path: "/clubs/:id/edit",
+        path: "clubs/:id/edit",
         Component: ClubCreatePage
       }
     ]
