@@ -12,20 +12,19 @@ import ProfileEditSection, {
   type ProfileEditSavePayload,
   type ProfileEditValue
 } from "@/components/mypage/ProfileEditSection";
+import { leaveClub } from "@/api/clubs";
 import {
   getManagedClubs,
   getMyClubs,
   getMyInfo,
   getMyReviews,
-  issuePresignedUrl,
-  leaveClub,
   updateMyInfo,
   updateMyReview,
-  uploadFileToPresignedUrl,
   type MyInfo,
   type MyReviewListItem,
   type ReviewPhoto
 } from "@/api/users";
+import { issuePresignedUrl, uploadFileToPresignedUrl } from "@/api/presigned";
 import { getApiResultType, getResponseMessage } from "@/api/common";
 import type { ClubSummary } from "@/types/club";
 import type { MyPageTab } from "@/components/mypage/MyPageTabs";
@@ -471,12 +470,6 @@ const MyPage = () => {
       setIsProfileSaving(true);
       let profilePhotoUrl = payload.profilePhotoUrl;
 
-      if (payload.localProfileFile) {
-        profilePhotoUrl = await uploadProfilePhotoToStorage(
-          payload.localProfileFile
-        );
-      }
-
       if (!ENABLE_PROFILE_API) {
         setProfile((prev) => ({
           ...prev,
@@ -490,6 +483,12 @@ const MyPage = () => {
           district: payload.district
         }));
         return;
+      }
+
+      if (payload.localProfileFile) {
+        profilePhotoUrl = await uploadProfilePhotoToStorage(
+          payload.localProfileFile
+        );
       }
 
       // API: PUT /users/me

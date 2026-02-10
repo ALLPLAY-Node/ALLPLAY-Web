@@ -6,7 +6,7 @@ import {
   type ClubJoinRequestItem,
   type ClubJoinRequestStatus
 } from "@/api/clubs";
-import { getApiResultType } from "@/api/common";
+import { getApiResultType, getResponseMessage } from "@/api/common";
 import type { ClubSummary } from "@/types/club";
 
 type ManagedClubDetailPanelProps = {
@@ -174,7 +174,7 @@ const ManagedClubDetailPanel = ({
         const resultType = getApiResultType(response);
 
         if (resultType !== "SUCCESS") {
-          throw new Error(response.message || "가입 신청 처리 실패");
+          throw new Error(getResponseMessage(response, "가입 신청 처리 실패"));
         }
       }
 

@@ -3,6 +3,7 @@ import SectionPanel, {
   type SectionPanelOption
 } from "@/components/mypage/forms/SectionPanel";
 import type { RegionOption } from "@/components/mypage/regionOptions";
+import { findCityOption } from "@/components/mypage/regionUtils";
 
 type ActivityRegionFormProps = {
   city: string;
@@ -11,36 +12,6 @@ type ActivityRegionFormProps = {
   onChangeDistrict: (district: string) => void;
   regionOptions: RegionOption[];
   disabled?: boolean;
-};
-
-const normalizeCityName = (city: string) =>
-  city
-    .replace("특별자치시", "")
-    .replace("특별자치도", "")
-    .replace("특별시", "")
-    .replace("광역시", "")
-    .replace("자치시", "")
-    .replace("자치도", "")
-    .replace("시", "")
-    .replace("도", "")
-    .trim();
-
-const findCityOption = (city: string, options: RegionOption[]) => {
-  if (!city) {
-    return null;
-  }
-
-  const byExact = options.find((option) => option.city === city);
-  if (byExact) {
-    return byExact;
-  }
-
-  const normalizedTarget = normalizeCityName(city);
-  return (
-    options.find(
-      (option) => normalizeCityName(option.city) === normalizedTarget
-    ) ?? null
-  );
 };
 
 const ActivityRegionForm = ({

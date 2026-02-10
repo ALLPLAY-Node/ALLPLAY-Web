@@ -3,10 +3,8 @@ import ActivityRegionForm from "@/components/mypage/forms/ActivityRegionForm";
 import MemberInfoForm from "@/components/mypage/forms/MemberInfoForm";
 import ProfileBasicForm from "@/components/mypage/forms/ProfileBasicForm";
 import ProfilePhotoForm from "@/components/mypage/forms/ProfilePhotoForm";
-import {
-  REGION_OPTIONS,
-  type RegionOption
-} from "@/components/mypage/regionOptions";
+import { REGION_OPTIONS } from "@/components/mypage/regionOptions";
+import { findCityOption } from "@/components/mypage/regionUtils";
 
 export type ProfileEditValue = {
   name: string;
@@ -39,36 +37,6 @@ type ProfileEditSectionProps = {
   onSave?: (payload: ProfileEditSavePayload) => Promise<void>;
 };
 
-const normalizeCityName = (city: string) =>
-  city
-    .replace("특별자치시", "")
-    .replace("특별자치도", "")
-    .replace("특별시", "")
-    .replace("광역시", "")
-    .replace("자치시", "")
-    .replace("자치도", "")
-    .replace("시", "")
-    .replace("도", "")
-    .trim();
-
-const findCityOption = (city: string, options: RegionOption[]) => {
-  if (!city) {
-    return null;
-  }
-
-  const byExact = options.find((option) => option.city === city);
-  if (byExact) {
-    return byExact;
-  }
-
-  const normalizedTarget = normalizeCityName(city);
-  return (
-    options.find(
-      (option) => normalizeCityName(option.city) === normalizedTarget
-    ) ?? null
-  );
-};
-
 const revokeIfBlobUrl = (url: string) => {
   if (url.startsWith("blob:")) {
     URL.revokeObjectURL(url);
@@ -91,8 +59,10 @@ const ProfileEditSection = ({
     value.profilePhotoUrl
   );
   const [localProfileFile, setLocalProfileFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const previousPreviewRef = useRef(profilePhotoPreview);
+  const isBusy = isSaving || isSubmitting;
 
   useEffect(() => {
     setDraftName(value.name);
@@ -103,7 +73,15 @@ const ProfileEditSection = ({
     setDraftDistrict(value.district);
     setLocalProfileFile(null);
     setProfilePhotoPreview(value.profilePhotoUrl);
-  }, [value]);
+  }, [
+    value.name,
+    value.introduce,
+    value.gender,
+    value.birth,
+    value.city,
+    value.district,
+    value.profilePhotoUrl
+  ]);
 
   useEffect(() => {
     const previousPreview = previousPreviewRef.current;
@@ -158,7 +136,7 @@ const ProfileEditSection = ({
   };
 
   const handleSave = async () => {
-    if (isSaving) {
+    if (isBusy) {
       return;
     }
 
@@ -173,18 +151,30 @@ const ProfileEditSection = ({
       return;
     }
 
-    await onSave?.({
-      name: trimmedName,
-      phoneNumber: value.phoneNumber,
-      introduce: draftIntroduce.trim(),
-      profilePhotoUrl: profilePhotoPreview,
-      city: selectedCityOption.city,
-      district: selectedDistrictOption.name,
-      regionId: selectedDistrictOption.id,
-      localProfileFile,
-      birth: draftBirth,
-      gender: draftGender
-    });
+    if (!onSave) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await onSave({
+        name: trimmedName,
+        phoneNumber: value.phoneNumber,
+        introduce: draftIntroduce.trim(),
+        profilePhotoUrl: profilePhotoPreview,
+        city: selectedCityOption.city,
+        district: selectedDistrictOption.name,
+        regionId: selectedDistrictOption.id,
+        localProfileFile,
+        birth: draftBirth,
+        gender: draftGender
+      });
+    } catch (error) {
+      console.error(error);
+      alert("개인정보 저장 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -202,7 +192,7 @@ const ProfileEditSection = ({
           <ProfilePhotoForm
             previewUrl={profilePhotoPreview}
             onSelectFile={handleSelectProfileFile}
-            disabled={isSaving}
+            disabled={isBusy}
           />
           <div className="pt-7">
             <ProfileBasicForm
@@ -210,7 +200,7 @@ const ProfileEditSection = ({
               introduce={draftIntroduce}
               onChangeName={setDraftName}
               onChangeIntroduce={setDraftIntroduce}
-              disabled={isSaving}
+              disabled={isBusy}
             />
           </div>
         </div>
@@ -225,7 +215,7 @@ const ProfileEditSection = ({
           birth={draftBirth}
           onChangeGender={setDraftGender}
           onChangeBirth={setDraftBirth}
-          disabled={isSaving}
+          disabled={isBusy}
         />
         <ActivityRegionForm
           city={draftCity}
@@ -233,7 +223,7 @@ const ProfileEditSection = ({
           onChangeCity={setDraftCity}
           onChangeDistrict={setDraftDistrict}
           regionOptions={REGION_OPTIONS}
-          disabled={isSaving}
+          disabled={isBusy}
         />
       </div>
 
@@ -242,7 +232,7 @@ const ProfileEditSection = ({
           type="button"
           className="h-[39px] w-[140px] rounded-xl border border-black text-base font-semibold text-black"
           onClick={handleReset}
-          disabled={isSaving}
+          disabled={isBusy}
         >
           취소
         </button>
@@ -252,7 +242,7 @@ const ProfileEditSection = ({
           onClick={() => {
             void handleSave();
           }}
-          disabled={isSaving}
+          disabled={isBusy}
         >
           저장하기
         </button>

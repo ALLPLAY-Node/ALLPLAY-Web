@@ -114,9 +114,6 @@ const SectionPanel = ({
         aria-expanded={isOpen}
       >
         <span>{selectedOption?.label ?? placeholder}</span>
-        <span className={`text-lg leading-none ${isOpen ? "rotate-180" : ""}`}>
-          ?
-        </span>
       </button>
 
       {isOpen ? (
