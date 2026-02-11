@@ -9,6 +9,7 @@ type ClubCardProps = {
 };
 
 const getJoinedActionLabel = (club: ClubSummary) => {
+  // 가입 상태에 따라 우측 액션 라벨 문구를 분기한다.
   if (club.joinStatus === "PENDING") {
     return "가입 신청 중";
   }
@@ -17,9 +18,10 @@ const getJoinedActionLabel = (club: ClubSummary) => {
 };
 
 const ClubCard = ({ club, variant, onClick }: ClubCardProps) => {
+  // 운영중 섹션은 "동호회 관리하기", 가입 섹션은 상태별 라벨을 노출한다.
   const actionLabel =
     variant === "managed" ? "동호회 관리하기" : getJoinedActionLabel(club);
-  const isClickable = variant === "joined" && typeof onClick === "function";
+  const isClickable = typeof onClick === "function";
 
   return (
     <div
@@ -30,6 +32,7 @@ const ClubCard = ({ club, variant, onClick }: ClubCardProps) => {
       }
       onClick={isClickable ? () => onClick?.(club) : undefined}
       onKeyDown={(event) => {
+        // 키보드 접근성(Enter/Space)으로도 카드 선택 가능하게 처리한다.
         if (!isClickable) {
           return;
         }

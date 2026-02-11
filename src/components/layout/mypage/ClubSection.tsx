@@ -1,8 +1,9 @@
-﻿import { useEffect, useRef } from "react";
-import type { ClubSummary } from "@/types/club";
+import { useEffect, useRef } from "react";
 import ClubCard from "@/components/layout/mypage/ClubCard";
-import type { ClubCardVariant } from "@/components/layout/mypage/ClubCard";
 import ClubDetailPanel from "@/components/layout/mypage/ClubDetailPanel";
+import ManagedClubDetailPanel from "@/components/layout/mypage/ManagedClubDetailPanel";
+import type { ClubCardVariant } from "@/components/layout/mypage/ClubCard";
+import type { ClubSummary } from "@/types/club";
 
 type ClubSectionProps = {
   title: string;
@@ -10,6 +11,7 @@ type ClubSectionProps = {
   variant: ClubCardVariant;
   onSelect?: (club: ClubSummary) => void;
   onLeaveClub?: (club: ClubSummary) => void;
+  onUpdateManagedClub?: (club: ClubSummary) => void;
   selectedClubId?: string | null;
 };
 
@@ -19,12 +21,13 @@ const ClubSection = ({
   variant,
   onSelect,
   onLeaveClub,
+  onUpdateManagedClub,
   selectedClubId
 }: ClubSectionProps) => {
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    const currentIds = new Set(clubs.map((c) => c.id));
+    const currentIds = new Set(clubs.map((club) => club.id));
     Object.keys(itemRefs.current).forEach((id) => {
       if (!currentIds.has(id)) {
         delete itemRefs.current[id];
@@ -36,6 +39,7 @@ const ClubSection = ({
     if (!selectedClubId) {
       return;
     }
+
     const node = itemRefs.current[selectedClubId];
     if (!node) {
       return;
@@ -51,7 +55,7 @@ const ClubSection = ({
       <h2 className="text-lg font-bold">{title}</h2>
       <div className="flex flex-col gap-4">
         {clubs.length === 0 ? (
-          <div className="min-h-[312px] flex items-center justify-center text-muted-foreground">
+          <div className="flex min-h-[312px] items-center justify-center text-muted-foreground">
             {variant === "joined"
               ? "가입한 동호회가 없습니다"
               : "운영 중인 동호회가 없습니다"}
@@ -71,6 +75,12 @@ const ClubSection = ({
                   club={club}
                   onClose={() => onSelect?.(club)}
                   onLeaveClub={() => onLeaveClub?.(club)}
+                />
+              ) : null}
+              {variant === "managed" && selectedClubId === club.id ? (
+                <ManagedClubDetailPanel
+                  club={club}
+                  onEditClub={onUpdateManagedClub}
                 />
               ) : null}
             </div>

@@ -6,6 +6,7 @@ type MyPageTabsProps = {
 };
 
 const MyPageTabs = ({ active = "clubs", onTabChange }: MyPageTabsProps) => {
+  // 탭 상태(active)에 따라 버튼 스타일만 바꿔 재사용한다.
   const baseClass =
     "h-12 rounded-xl bg-[#E5F1FF] text-[#999999] hover:bg-[#E5F1FF]/90 cursor-pointer";
   const activeClass =
@@ -17,6 +18,7 @@ const MyPageTabs = ({ active = "clubs", onTabChange }: MyPageTabsProps) => {
         size="lg"
         variant="secondary"
         className={active === "clubs" ? activeClass : baseClass}
+        // 실제 탭 상태는 상위(MyPage)에서 관리한다.
         onClick={() => onTabChange?.("clubs")}
       >
         MY 동호회
