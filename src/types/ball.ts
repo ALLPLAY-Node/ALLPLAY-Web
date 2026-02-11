@@ -8,3 +8,12 @@ export const BALL_LABEL = {
 } as const;
 
 export type BallType = keyof typeof BALL_LABEL;
+
+export const SPORT_ID_MAP: Record<string, number> = {
+  BASKETBALL: 1,
+  BASEBALL: 2,
+  SOCCER: 3,
+  TENNIS: 4,
+  PINGPONG: 5,
+  BADMINTON: 6
+};

@@ -1,14 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { BALL_LABEL, type BallType } from "@/types/ball";
+import { BALL_LABEL, SPORT_ID_MAP, type BallType } from "@/types/ball";
 import { BALL_ICON_SRC } from "./ballIcon";
 
 interface BallButtonProps {
   ball: BallType;
+  func: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
-const BallButton = ({ ball }: BallButtonProps) => {
+const BallButton = ({ ball, func }: BallButtonProps) => {
   return (
-    <Button variant="customball" size="ball">
+    <Button
+      variant="customball"
+      size="ball"
+      onClick={() => func(SPORT_ID_MAP[ball])}
+    >
       <div className="flex h-full w-full flex-col items-center justify-center gap-4">
         <img
           src={BALL_ICON_SRC[ball]}
