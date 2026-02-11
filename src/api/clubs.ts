@@ -352,7 +352,8 @@ export const getClubJoinRequests = async (clubId: string, cursor?: number) => {
   }
 
   const query = params.toString();
-  const endpoint = `${API_BASE_URL}/clubs/${clubId}/join-requests${
+  const encodedClubId = encodeURIComponent(clubId);
+  const endpoint = `${API_BASE_URL}/clubs/${encodedClubId}/join-requests${
     query ? `?${query}` : ""
   }`;
 
@@ -362,8 +363,9 @@ export const getClubJoinRequests = async (clubId: string, cursor?: number) => {
   });
 
   const body = await res.json().catch(() => ({}));
+  const resultType = getResultType(body);
 
-  if (!res.ok) {
+  if (!res.ok || resultType !== "SUCCESS") {
     throw new Error(
       getResponseMessage(body, "Failed to fetch join request status.")
     );
@@ -377,8 +379,10 @@ export const processClubJoinRequest = async (
   requestId: string,
   status: ClubJoinRequestStatus
 ) => {
+  const encodedClubId = encodeURIComponent(clubId);
+  const encodedRequestId = encodeURIComponent(requestId);
   const res = await fetch(
-    `${API_BASE_URL}/clubs/${clubId}/join-requests/${requestId}`,
+    `${API_BASE_URL}/clubs/${encodedClubId}/join-requests/${encodedRequestId}`,
     {
       method: "POST",
       headers: buildAuthHeaders(true),
@@ -387,8 +391,9 @@ export const processClubJoinRequest = async (
   );
 
   const body = await res.json().catch(() => ({}));
+  const resultType = getResultType(body);
 
-  if (!res.ok) {
+  if (!res.ok || resultType !== "SUCCESS") {
     throw new Error(
       getResponseMessage(body, "Failed to process join request.")
     );
@@ -398,14 +403,16 @@ export const processClubJoinRequest = async (
 };
 
 export const leaveClub = async (clubId: string) => {
-  const res = await fetch(`${API_BASE_URL}/clubs/${clubId}/join`, {
+  const encodedClubId = encodeURIComponent(clubId);
+  const res = await fetch(`${API_BASE_URL}/clubs/${encodedClubId}/join`, {
     method: "DELETE",
     headers: buildAuthHeaders(true)
   });
 
   const body = await res.json().catch(() => ({}));
+  const resultType = getResultType(body);
 
-  if (!res.ok) {
+  if (!res.ok || resultType !== "SUCCESS") {
     throw new Error(getResponseMessage(body, "Failed to leave club"));
   }
 

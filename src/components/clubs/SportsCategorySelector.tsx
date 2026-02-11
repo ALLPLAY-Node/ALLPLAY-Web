@@ -3,7 +3,7 @@ import baseball from "@/assets/clubsPage/baseball.png";
 import soccer from "@/assets/clubsPage/soccer.png";
 import tennis from "@/assets/clubsPage/tennis.png";
 import pingpong from "@/assets/clubsPage/pingpong.png";
-import bedminton from "@/assets/clubsPage/bedminton.png";
+import badminton from "@/assets/clubsPage/badminton.png";
 import { sports } from "@/utils/clubs";
 
 const sportImages: Record<number, string> = {
@@ -12,7 +12,7 @@ const sportImages: Record<number, string> = {
   3: soccer,
   4: tennis,
   5: pingpong,
-  6: bedminton
+  6: badminton
 };
 
 const sportsCategories = sports.map((sport) => ({

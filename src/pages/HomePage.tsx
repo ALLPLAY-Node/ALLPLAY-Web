@@ -131,10 +131,6 @@ const HomePage = () => {
     fetchFacilities();
   }, [selectedSport]);
 
-  useEffect(() => {
-    setCursor(undefined);
-  }, [selectedSport]);
-
   const handleLoadMore = async () => {
     if (!cursor) return;
     setIsLoading(true);
