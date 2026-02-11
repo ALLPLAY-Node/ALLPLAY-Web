@@ -1,4 +1,4 @@
-﻿import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import MyPageProfileCard from "@/components/layout/mypage/MyPageProfileCard";
 import MyPageTabs from "@/components/layout/mypage/MyPageTabs";
 

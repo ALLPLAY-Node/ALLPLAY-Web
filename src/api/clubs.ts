@@ -1,30 +1,7 @@
 import type { ApiResponse } from "@/types/api";
+import { buildAuthHeaders, getResponseMessage } from "@/api/common";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
-
-const getAccessToken = () => {
-  return localStorage.getItem("accessToken");
-};
-
-const getResponseMessage = (body: unknown, fallback: string) => {
-  const parsed = body as { message?: string; messege?: string } | null;
-  return parsed?.message ?? parsed?.messege ?? fallback;
-};
-
-const buildAuthHeaders = (withJsonContentType = false) => {
-  const token = getAccessToken();
-  const authorization =
-    token && token.toLowerCase().startsWith("bearer ")
-      ? token
-      : token
-        ? `Bearer ${token}`
-        : undefined;
-
-  return {
-    ...(withJsonContentType ? { "Content-Type": "application/json" } : {}),
-    ...(authorization ? { Authorization: authorization } : {})
-  };
-};
 
 export type ClubAgeGroup =
   | "TEENS"
@@ -49,6 +26,7 @@ export type UpdateClubInfoPayload = {
   description: string;
   joinRequirement: string;
   contact: string;
+  // NOTE: backend compatibility - request key is intentionally "hompageUrl" (typo).
   hompageUrl?: string;
 };
 
@@ -73,19 +51,13 @@ type UpdateClubInfoSuccess = {
   createdAt: string;
 };
 
-type UpdateClubInfoResponse = ApiResponse<UpdateClubInfoSuccess> & {
-  resultTyle?: "SUCCESS" | "FAIL";
-};
+type UpdateClubInfoResponse = ApiResponse<UpdateClubInfoSuccess>;
 
 type ClubJoinRequestListResponse = ApiResponse<
   CursorResponse<ClubJoinRequestItem>
-> & {
-  resultTyle?: "SUCCESS" | "FAIL";
-};
+>;
 
-type ClubJoinDecisionResponse = ApiResponse<Record<string, never>> & {
-  resultTyle?: "SUCCESS" | "FAIL";
-};
+type ClubJoinDecisionResponse = ApiResponse<Record<string, never>>;
 
 const buildUpdateClubFormData = (payload: UpdateClubInfoPayload) => {
   const formData = new FormData();
@@ -103,6 +75,7 @@ const buildUpdateClubFormData = (payload: UpdateClubInfoPayload) => {
   formData.append("contact", payload.contact);
 
   if (payload.hompageUrl) {
+    // NOTE: backend compatibility - request key is intentionally "hompageUrl" (typo).
     formData.append("hompageUrl", payload.hompageUrl);
   }
 
@@ -128,7 +101,7 @@ export const updateClubInfo = async (
 
   if (!res.ok) {
     throw new Error(
-      getResponseMessage(body, "동호회 정보 수정 중 오류가 발생했습니다.")
+      getResponseMessage(body, "Failed to update club information.")
     );
   }
 
@@ -145,16 +118,14 @@ export const requestJoinClub = async (clubId: string) => {
   const body = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new Error(
-      getResponseMessage(body, "가입 신청 중 오류가 발생했습니다.")
-    );
+    throw new Error(getResponseMessage(body, "Failed to request club join."));
   }
 
   return body as ApiResponse<{
     clubId: string;
     userId: string;
     createdAt: string;
-  }> & { resultTyle?: "SUCCESS" | "FAIL" };
+  }>;
 };
 
 // API: GET /clubs/{clubId}/join-requests
@@ -178,7 +149,7 @@ export const getClubJoinRequests = async (clubId: string, cursor?: number) => {
 
   if (!res.ok) {
     throw new Error(
-      getResponseMessage(body, "가입 신청 현황 조회 중 오류가 발생했습니다.")
+      getResponseMessage(body, "Failed to fetch join request status.")
     );
   }
 
@@ -204,7 +175,7 @@ export const processClubJoinRequest = async (
 
   if (!res.ok) {
     throw new Error(
-      getResponseMessage(body, "가입 신청 처리 중 오류가 발생했습니다.")
+      getResponseMessage(body, "Failed to process join request.")
     );
   }
 
