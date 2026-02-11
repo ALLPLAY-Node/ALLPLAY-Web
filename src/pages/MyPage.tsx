@@ -1,30 +1,41 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import MyPageLayout from "@/components/layout/mypage/MyPageLayout";
-import ClubSection from "@/components/layout/mypage/ClubSection";
-import LeaveClubBox from "@/components/layout/mypage/LeaveClubBox";
-import LeaveClubDoneBox from "@/components/layout/mypage/LeaveClubDoneBox";
+import MyPageLayout from "@/components/mypage/MyPageLayout";
+import ClubSection from "@/components/mypage/ClubSection";
+import LeaveClubBox from "@/components/mypage/LeaveClubBox";
+import LeaveClubDoneBox from "@/components/mypage/LeaveClubDoneBox";
 import MyReviewSection, {
   type ReviewListEntry,
   type ReviewUpdateDraftPayload
-} from "@/components/layout/mypage/MyReviewSection";
+} from "@/components/mypage/MyReviewSection";
+import ProfileEditSection, {
+  type ProfileEditSavePayload,
+  type ProfileEditValue
+} from "@/components/mypage/ProfileEditSection";
+import { leaveClub } from "@/api/clubs";
 import {
   getManagedClubs,
   getMyClubs,
+  getMyInfo,
   getMyReviews,
-  issuePresignedUrl,
-  leaveClub,
+  updateMyInfo,
   updateMyReview,
-  uploadFileToPresignedUrl,
+  type MyInfo,
   type MyReviewListItem,
   type ReviewPhoto
 } from "@/api/users";
-import { getApiResultType, getResponseMessage } from "@/api/common";
+import {
+  issuePresignedUrl,
+  uploadFileToPresignedUrl
+} from "@/api/presigned-url";
+import { getApiResultType, getResponseMessage } from "@/api/auth";
 import type { ClubSummary } from "@/types/club";
+import type { MyPageTab } from "@/components/mypage/MyPageTabs";
 
-const ENABLE_LEAVE_CLUB_API = false;
-const ENABLE_PLACEHOLDER_CLUBS = true;
-const ENABLE_REVIEW_API = false;
+const ENABLE_LEAVE_CLUB_API = true;
+const ENABLE_PLACEHOLDER_CLUBS = false;
+const ENABLE_REVIEW_API = true;
+const ENABLE_PROFILE_API = true;
 
 const placeholderClubs: ClubSummary[] = [
   {
@@ -92,6 +103,17 @@ const mockReviews: ReviewListEntry[] = [
   }
 ];
 
+const mockProfile: ProfileEditValue = {
+  name: "홍길동",
+  phoneNumber: "010-1234-5678",
+  introduce: "자기소개를 입력해주세요",
+  profilePhotoUrl: "",
+  birth: "2000-12-12",
+  gender: "",
+  city: "서울",
+  district: "강남구"
+};
+
 const toReviewEntry = (item: MyReviewListItem): ReviewListEntry | null => {
   const createdAt = item.createdAt ?? item.created_at;
   if (!item.reviewId || !item.facilityName || !createdAt) {
@@ -108,6 +130,20 @@ const toReviewEntry = (item: MyReviewListItem): ReviewListEntry | null => {
   };
 };
 
+const toProfileValue = (info: MyInfo): ProfileEditValue => {
+  return {
+    name: info.name ?? "홍길동",
+    phoneNumber: info.phoneNumber ?? "010-0000-0000",
+    introduce: info.introduce ?? "",
+    profilePhotoUrl: info.profilePhotoUrl ?? "",
+    birth: info.birth ?? "",
+    // TODO: 성별 필드 API 명세 확정 후 서버 값으로 매핑
+    gender: info.gender ?? "",
+    city: info.region?.city ?? "",
+    district: info.region?.district ?? ""
+  };
+};
+
 const getFileExtension = (file: File) => {
   const splitByDot = file.name.split(".");
   if (splitByDot.length > 1) {
@@ -116,16 +152,19 @@ const getFileExtension = (file: File) => {
   return "jpg";
 };
 
-const createReviewUploadFileName = (file: File, index: number) => {
+const createUploadFileName = (prefix: string, file: File, index: number) => {
   const extension = getFileExtension(file);
-  return `review-${Date.now()}-${index}.${extension}`;
+  return `${prefix}-${Date.now()}-${index}.${extension}`;
 };
 
 const MyPage = () => {
   const navigate = useNavigate();
+
   const [joinedClubs, setJoinedClubs] = useState<ClubSummary[]>([]);
   const [managedClubs, setManagedClubs] = useState<ClubSummary[]>([]);
   const [reviews, setReviews] = useState<ReviewListEntry[]>([]);
+  const [profile, setProfile] = useState<ProfileEditValue>(mockProfile);
+
   const [selectedJoinedClubId, setSelectedJoinedClubId] = useState<
     string | null
   >(null);
@@ -136,13 +175,15 @@ const MyPage = () => {
   const [completedLeaveClubId, setCompletedLeaveClubId] = useState<
     string | null
   >(null);
+
   const [isLeaveDoneOpen, setIsLeaveDoneOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isClubsLoading, setIsClubsLoading] = useState(false);
   const [isReviewsLoading, setIsReviewsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<
-    "clubs" | "reviews" | "help" | "profile"
-  >("clubs");
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<MyPageTab>("clubs");
 
   const fetchClubs = async () => {
     setIsClubsLoading(true);
@@ -176,12 +217,9 @@ const MyPage = () => {
 
     setIsReviewsLoading(true);
     try {
-      // Connected API: GET /users/me/reviews
       const response = await getMyReviews();
       const resultType = getApiResultType(response);
-
       if (resultType !== "SUCCESS") {
-        console.error(response);
         setReviews([]);
         return;
       }
@@ -199,9 +237,35 @@ const MyPage = () => {
     }
   };
 
+  const fetchProfile = async () => {
+    if (!ENABLE_PROFILE_API) {
+      setProfile(mockProfile);
+      return;
+    }
+
+    setIsProfileLoading(true);
+    try {
+      // API: GET /users/me
+      const response = await getMyInfo();
+      // 오탈자 확인: resultType 대신 resultTyle이 내려올 수 있다.
+      const resultType = getApiResultType(response);
+
+      if (resultType !== "SUCCESS") {
+        throw new Error(getResponseMessage(response, "개인정보 조회 실패"));
+      }
+
+      setProfile(toProfileValue(response.success ?? {}));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
   useEffect(() => {
     void fetchClubs();
     void fetchReviews();
+    void fetchProfile();
   }, []);
 
   const joinedList =
@@ -247,7 +311,7 @@ const MyPage = () => {
         const response = await leaveClub(targetClubId);
         const resultType = getApiResultType(response);
         if (resultType !== "SUCCESS") {
-          // 오탈자 확인: message 대신 messege가 내려올 수 있어 공통 파서를 사용한다.
+          // 오탈자 확인: message 대신 messege가 내려올 수 있다.
           throw new Error(getResponseMessage(response, "동호회 탈퇴 실패"));
         }
       }
@@ -288,9 +352,9 @@ const MyPage = () => {
       return [] as ReviewPhoto[];
     }
 
-    const uploadedPhotos = await Promise.all(
+    return Promise.all(
       files.map(async (file, index) => {
-        const fileName = createReviewUploadFileName(file, index);
+        const fileName = createUploadFileName("review", file, index);
         const presignedResponse = await issuePresignedUrl({
           domain: "reviews",
           operation: "PUT",
@@ -298,9 +362,9 @@ const MyPage = () => {
           fileType: file.type || "image/jpeg"
         });
 
+        // 오탈자 확인: resultType 대신 resultTyle이 내려올 수 있다.
         const resultType = getApiResultType(presignedResponse);
         if (resultType !== "SUCCESS") {
-          // 오탈자 확인: resultTyle/messege 호환을 위해 공통 파서를 사용한다.
           throw new Error(
             getResponseMessage(presignedResponse, "Presigned URL 발급 실패")
           );
@@ -312,16 +376,38 @@ const MyPage = () => {
         }
 
         const uploadedUrl = await uploadFileToPresignedUrl(file, presigned);
-
         return {
-          // TODO: 백엔드가 photoId 생성 규칙을 제공하면 해당 값으로 교체
+          // TODO: 백엔드가 photoId 생성 규칙을 제공하면 교체
           photoId: fileName,
           photoUrl: uploadedUrl
         };
       })
     );
+  };
 
-    return uploadedPhotos;
+  const uploadProfilePhotoToStorage = async (file: File) => {
+    const fileName = createUploadFileName("profile", file, 0);
+    const presignedResponse = await issuePresignedUrl({
+      domain: "user-profile",
+      operation: "PUT",
+      fileName,
+      fileType: file.type || "image/jpeg"
+    });
+
+    // 오탈자 확인: resultType 대신 resultTyle이 내려올 수 있다.
+    const resultType = getApiResultType(presignedResponse);
+    if (resultType !== "SUCCESS") {
+      throw new Error(
+        getResponseMessage(presignedResponse, "사진 업로드 실패")
+      );
+    }
+
+    const presigned = presignedResponse.success;
+    if (!presigned?.url) {
+      throw new Error("프로필 presigned URL 응답이 비어있습니다.");
+    }
+
+    return uploadFileToPresignedUrl(file, presigned);
   };
 
   const handleUpdateReview = async (
@@ -331,8 +417,6 @@ const MyPage = () => {
     const { text, photos, localFiles } = payload;
 
     if (!ENABLE_REVIEW_API) {
-      // NOTE: mock mode
-      // For local testing, attach selected files as local preview URLs.
       const localPreviewPhotos: ReviewPhoto[] = localFiles.map(
         (file, index) => ({
           photoId: `local-${Date.now()}-${index}`,
@@ -346,8 +430,7 @@ const MyPage = () => {
             ? {
                 ...review,
                 text,
-                photos: [...photos, ...localPreviewPhotos],
-                createdAt: new Date().toISOString()
+                photos: [...photos, ...localPreviewPhotos]
               }
             : review
         )
@@ -355,14 +438,8 @@ const MyPage = () => {
       return;
     }
 
-    // Connected flow:
-    // 1) Issue presigned URL
-    // 2) Upload local files directly to S3 via PUT
-    // 3) Send final photos[] to review update API
     const uploadedPhotos = await uploadLocalFilesToStorage(localFiles);
     const mergedPhotos = [...photos, ...uploadedPhotos];
-
-    // Connected API: PUT /users/me/reviews/{reviewId}
     const response = await updateMyReview(reviewId, {
       text,
       photos: mergedPhotos
@@ -370,28 +447,88 @@ const MyPage = () => {
     const resultType = getApiResultType(response);
 
     if (resultType !== "SUCCESS") {
-      // 오탈자 확인: message 대신 messege가 내려올 수 있어 공통 파서를 사용한다.
+      // 오탈자 확인: message 대신 messege가 내려올 수 있다.
       throw new Error(getResponseMessage(response, "리뷰 수정 실패"));
     }
 
-    const updatedAt = response.success?.updatedAt ?? new Date().toISOString();
-
-    // Keep optimistic update for immediate feedback.
     setReviews((prev) =>
       prev.map((review) =>
         review.reviewId === reviewId
           ? {
               ...review,
               text,
-              photos: mergedPhotos,
-              createdAt: updatedAt
+              photos: mergedPhotos
             }
           : review
       )
     );
+  };
 
-    // TODO: once backend returns canonical review detail consistently,
-    // switch to `void fetchReviews();` to sync list from server source-of-truth.
+  const handleSaveProfile = async (payload: ProfileEditSavePayload) => {
+    if (isProfileSaving) {
+      return;
+    }
+
+    try {
+      setIsProfileSaving(true);
+      let profilePhotoUrl = payload.profilePhotoUrl;
+
+      if (!ENABLE_PROFILE_API) {
+        setProfile((prev) => ({
+          ...prev,
+          name: payload.name,
+          phoneNumber: payload.phoneNumber,
+          introduce: payload.introduce,
+          profilePhotoUrl,
+          birth: payload.birth,
+          gender: payload.gender,
+          city: payload.city,
+          district: payload.district
+        }));
+        return;
+      }
+
+      if (payload.localProfileFile) {
+        profilePhotoUrl = await uploadProfilePhotoToStorage(
+          payload.localProfileFile
+        );
+      }
+
+      // API: PUT /users/me
+      const response = await updateMyInfo({
+        name: payload.name,
+        phoneNumber: payload.phoneNumber,
+        introduce: payload.introduce,
+        profilePhotoUrl,
+        regionId: payload.regionId
+      });
+
+      // 오탈자 확인: resultType 대신 resultTyle이 내려올 수 있다.
+      const resultType = getApiResultType(response);
+      if (resultType !== "SUCCESS") {
+        throw new Error(getResponseMessage(response, "개인정보 수정 실패"));
+      }
+
+      setProfile((prev) => ({
+        ...prev,
+        name: payload.name,
+        phoneNumber: payload.phoneNumber,
+        introduce: payload.introduce,
+        profilePhotoUrl,
+        birth: payload.birth,
+        gender: payload.gender,
+        city: payload.city,
+        district: payload.district
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "개인정보 저장 중 오류가 발생했습니다.";
+      alert(message);
+    } finally {
+      setIsProfileSaving(false);
+    }
   };
 
   return (
@@ -402,6 +539,13 @@ const MyPage = () => {
             reviews={reviews}
             isLoading={isReviewsLoading}
             onUpdateReview={handleUpdateReview}
+          />
+        ) : activeTab === "profile" ? (
+          <ProfileEditSection
+            value={profile}
+            isLoading={isProfileLoading}
+            isSaving={isProfileSaving}
+            onSave={handleSaveProfile}
           />
         ) : (
           <>

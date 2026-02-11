@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+﻿import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import type { ReviewPhoto } from "@/api/users";
 
 export type ReviewListEntry = {
@@ -151,7 +151,7 @@ const MyReviewSection = ({
         }
       });
     };
-  }, [draftPhotoSlots]);
+  }, []);
 
   const closeDetail = () => {
     setSelectedReviewId(null);
@@ -285,10 +285,10 @@ const MyReviewSection = ({
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="hidden rounded-md bg-[#E3E3E3] px-4 py-2 md:grid md:grid-cols-[1.2fr_3fr_1fr] md:items-center md:gap-6">
+      <div className="hidden rounded-md bg-[#E3E3E3] px-4 py-2 md:grid md:grid-cols-[1.2fr_minmax(0,3fr)_auto] md:items-center md:gap-6">
         <div className="text-center text-lg font-medium">시설 이름</div>
         <div className="text-center text-lg font-medium">작성한 리뷰 내용</div>
-        <div className="text-center text-lg font-medium">등록 날짜</div>
+        <div className="text-right text-lg font-medium">등록 날짜</div>
       </div>
 
       {isLoading ? (
@@ -320,7 +320,7 @@ const MyReviewSection = ({
                 <button
                   type="button"
                   onClick={() => handleToggleReview(review)}
-                  className={`grid w-full grid-cols-1 gap-2 rounded-md border px-3 py-3 text-left transition-colors md:grid-cols-[1.2fr_3fr_1fr] md:items-center md:gap-6 ${
+                  className={`grid w-full grid-cols-1 gap-2 rounded-md border px-3 py-3 text-left transition-colors md:grid-cols-[1.2fr_minmax(0,3fr)_auto] md:items-center md:gap-6 ${
                     isOpen
                       ? "border-[#4D9AFF] bg-[#F2F8FF]"
                       : "border-[#999999] bg-white hover:bg-[#F9F9F9]"
@@ -335,7 +335,7 @@ const MyReviewSection = ({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 md:block">
+                  <div className="flex min-w-0 items-center gap-2 md:block">
                     <span className="text-xs text-muted-foreground md:hidden">
                       리뷰 내용
                     </span>
@@ -344,11 +344,11 @@ const MyReviewSection = ({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 md:block">
+                  <div className="flex items-center gap-2 md:block md:justify-self-end">
                     <span className="text-xs text-muted-foreground md:hidden">
                       등록 날짜
                     </span>
-                    <span className="text-base md:text-center">
+                    <span className="text-base whitespace-nowrap md:text-right">
                       {formatReviewDate(review.createdAt)}
                     </span>
                   </div>

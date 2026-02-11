@@ -1,12 +1,12 @@
 type LegacyMessageBody = {
   message?: string;
-  // 백엔드 응답 오탈자 호환용 필드(messege)
+  // 백엔드 응답 오탈자 호환 필드(messege)
   messege?: string;
 } | null;
 
 type LegacyResultTypeBody = {
   resultType?: "SUCCESS" | "FAIL";
-  // 백엔드 응답 오탈자 호환용 필드(resultTyle)
+  // 백엔드 응답 오탈자 호환 필드(resultTyle)
   resultTyle?: "SUCCESS" | "FAIL";
 } | null;
 

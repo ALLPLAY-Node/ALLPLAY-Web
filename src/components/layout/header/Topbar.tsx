@@ -4,20 +4,20 @@ import { GrLogin } from "react-icons/gr";
 
 const Topbar = () => {
   return (
-    <div className="flex justify-end gap-[24px] text-sm py-2">
-      <Link to="/join" className="flex jusity-center items-center gap-1">
+    <div className="flex justify-end gap-[24px] py-2 text-sm">
+      <Link to="/join" className="flex items-center justify-center gap-1">
         <BsPerson size={18} />
-        회원가입
+        {"\uD68C\uC6D0\uAC00\uC785"}
       </Link>
-      <Link to="/login" className="flex jusity-center items-center gap-1">
+      <Link to="/login" className="flex items-center justify-center gap-1">
         <GrLogin size={18} />
-        로그인
+        {"\uB85C\uADF8\uC778"}
       </Link>
-      <Link to="/mypage" className="flex jusity-center items-center gap-1">
-        마이페이지
+      <Link to="/mypage" className="flex items-center justify-center gap-1">
+        {"\uB9C8\uC774\uD398\uC774\uC9C0"}
       </Link>
-      <Link to="/help" className="flex jusity-center items-center gap-1">
-        도움말
+      <Link to="/help" className="flex items-center justify-center gap-1">
+        {"\uB3C4\uC6C0\uB9D0"}
       </Link>
     </div>
   );

@@ -1,5 +1,5 @@
 import type { ApiResponse } from "@/types/api";
-import { buildAuthHeaders, getResponseMessage } from "@/api/common";
+import { buildAuthHeaders, buildHeaders, getResponseMessage } from "@/api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -126,6 +126,22 @@ export const requestJoinClub = async (clubId: string) => {
     userId: string;
     createdAt: string;
   }>;
+};
+
+// API: DELETE /clubs/{clubId}/join
+export const leaveClub = async (clubId: string) => {
+  const res = await fetch(`${API_BASE_URL}/clubs/${clubId}/join`, {
+    method: "DELETE",
+    headers: buildHeaders()
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(getResponseMessage(body, "Failed to leave club"));
+  }
+
+  return body as ApiResponse<Record<string, never>>;
 };
 
 // API: GET /clubs/{clubId}/join-requests
