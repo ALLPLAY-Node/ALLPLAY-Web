@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 
 @layer base {
+  html {
+    /* 탭 전환 시 세로 스크롤바 유무로 인한 좌우 레이아웃 흔들림 방지 */
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
+
   body {
     @apply m-0;
     font-family: var(--font-pretendard);

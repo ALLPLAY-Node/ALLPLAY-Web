@@ -4,6 +4,7 @@ import ClubDetailPage from "@/pages/ClubDetailPage";
 import ClubsPage from "@/pages/ClubsPage";
 import FacilityDetailPage from "@/pages/FacilityDetailPage";
 import HomePage from "@/pages/HomePage";
+import MyPage from "@/pages/MyPage";
 import { createBrowserRouter } from "react-router";
 
 export const router = createBrowserRouter([
