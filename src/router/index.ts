@@ -1,6 +1,8 @@
 import Layout from "@/components/layout/Layout";
-import ClubEditPage from "@/pages/ClubEditPage";
-import HelpPage from "@/pages/HelpPage";
+import ClubCreatePage from "@/pages/ClubCreatePage";
+import ClubDetailPage from "@/pages/ClubDetailPage";
+import ClubsPage from "@/pages/ClubsPage";
+import FacilityDetailPage from "@/pages/FacilityDetailPage";
 import HomePage from "@/pages/HomePage";
 import MyPage from "@/pages/MyPage";
 import { createBrowserRouter } from "react-router";
@@ -15,16 +17,32 @@ export const router = createBrowserRouter([
         Component: HomePage
       },
       {
-        path: "/mypage",
-        Component: MyPage
+        path: "home",
+        Component: HomePage
       },
       {
-        path: "/help",
-        Component: HelpPage
+        path: "spots",
+        Component: HomePage
       },
       {
-        path: "/clubs/:clubId/edit",
-        Component: ClubEditPage
+        path: "spots/:id",
+        Component: FacilityDetailPage
+      },
+      {
+        path: "clubs",
+        Component: ClubsPage
+      },
+      {
+        path: "clubs/new",
+        Component: ClubCreatePage
+      },
+      {
+        path: "clubs/:id",
+        Component: ClubDetailPage
+      },
+      {
+        path: "clubs/:id/edit",
+        Component: ClubCreatePage
       }
     ]
   }
