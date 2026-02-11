@@ -3,6 +3,7 @@ import ClubCreatePage from "@/pages/ClubCreatePage";
 import ClubDetailPage from "@/pages/ClubDetailPage";
 import ClubsPage from "@/pages/ClubsPage";
 import FacilityDetailPage from "@/pages/FacilityDetailPage";
+import HelpPage from "@/pages/HelpPage";
 import HomePage from "@/pages/HomePage";
 import MyPage from "@/pages/MyPage";
 import { createBrowserRouter } from "react-router";
@@ -43,6 +44,14 @@ export const router = createBrowserRouter([
       {
         path: "clubs/:id/edit",
         Component: ClubCreatePage
+      },
+      {
+        path: "mypage",
+        Component: MyPage
+      },
+      {
+        path: "help",
+        Component: HelpPage
       }
     ]
   }
