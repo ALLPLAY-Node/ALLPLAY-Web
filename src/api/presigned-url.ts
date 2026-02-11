@@ -3,7 +3,7 @@ import {
   buildAuthHeaders,
   getApiResultType,
   getResponseMessage
-} from "@/api/common";
+} from "@/api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -44,7 +44,7 @@ export const issuePresignedUrl = async (payload: IssuePresignedUrlPayload) => {
     throw new Error(getResponseMessage(body, "Failed to issue presigned url"));
   }
 
-  // 오탈자 확인: 백엔드 응답에서 resultType 대신 resultTyle이 내려올 수 있음.
+  // 오탈자 호환: resultType 또는 resultTyle이 내려올 수 있다.
   const resultType = getApiResultType(body);
   if (resultType !== "SUCCESS") {
     throw new Error(getResponseMessage(body, "Failed to issue presigned url"));

@@ -24,15 +24,18 @@ import {
   type MyReviewListItem,
   type ReviewPhoto
 } from "@/api/users";
-import { issuePresignedUrl, uploadFileToPresignedUrl } from "@/api/presigned";
-import { getApiResultType, getResponseMessage } from "@/api/common";
+import {
+  issuePresignedUrl,
+  uploadFileToPresignedUrl
+} from "@/api/presigned-url";
+import { getApiResultType, getResponseMessage } from "@/api/auth";
 import type { ClubSummary } from "@/types/club";
 import type { MyPageTab } from "@/components/mypage/MyPageTabs";
 
-const ENABLE_LEAVE_CLUB_API = false;
-const ENABLE_PLACEHOLDER_CLUBS = true;
-const ENABLE_REVIEW_API = false;
-const ENABLE_PROFILE_API = false;
+const ENABLE_LEAVE_CLUB_API = true;
+const ENABLE_PLACEHOLDER_CLUBS = false;
+const ENABLE_REVIEW_API = true;
+const ENABLE_PROFILE_API = true;
 
 const placeholderClubs: ClubSummary[] = [
   {

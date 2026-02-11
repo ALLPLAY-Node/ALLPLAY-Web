@@ -1,12 +1,9 @@
 import type { ApiResponse } from "@/types/api";
 import type { ClubListResponse } from "@/types/club";
-import {
-  buildAuthHeaders,
-  buildHeaders,
-  getResponseMessage
-} from "@/api/common";
+import { buildAuthHeaders, buildHeaders, getResponseMessage } from "@/api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const USERS_API_BASE_URL = `${API_BASE_URL}/api/v1/users`;
 
 type CursorResponse<T> = {
   items: T[];
@@ -82,7 +79,7 @@ type UpdateMyInfoResponse = ApiResponse<{
 }>;
 
 export const getMyClubs = async () => {
-  const res = await fetch(`${API_BASE_URL}/users/me/clubs`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me/clubs`, {
     method: "GET",
     headers: buildHeaders()
   });
@@ -96,7 +93,7 @@ export const getMyClubs = async () => {
 };
 
 export const getManagedClubs = async () => {
-  const res = await fetch(`${API_BASE_URL}/users/me/clubs/managed`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me/clubs/managed`, {
     method: "GET",
     headers: buildHeaders()
   });
@@ -111,9 +108,9 @@ export const getManagedClubs = async () => {
   return (await res.json()) as ApiResponse<ClubListResponse>;
 };
 
-// API: GET /users/me
+// API: GET /api/v1/users/me
 export const getMyInfo = async () => {
-  const res = await fetch(`${API_BASE_URL}/users/me`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me`, {
     method: "GET",
     headers: buildAuthHeaders()
   });
@@ -127,9 +124,9 @@ export const getMyInfo = async () => {
   return body as GetMyInfoResponse;
 };
 
-// API: PUT /users/me
+// API: PUT /api/v1/users/me
 export const updateMyInfo = async (payload: UpdateMyInfoPayload) => {
-  const res = await fetch(`${API_BASE_URL}/users/me`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me`, {
     method: "PUT",
     headers: buildHeaders(),
     body: JSON.stringify(payload)
@@ -144,7 +141,7 @@ export const updateMyInfo = async (payload: UpdateMyInfoPayload) => {
   return body as UpdateMyInfoResponse;
 };
 
-// API: GET /users/me/reviews
+// API: GET /api/v1/users/me/reviews
 export const getMyReviews = async (cursor?: number) => {
   const params = new URLSearchParams();
   if (cursor !== undefined) {
@@ -152,7 +149,7 @@ export const getMyReviews = async (cursor?: number) => {
   }
 
   const query = params.toString();
-  const endpoint = `${API_BASE_URL}/users/me/reviews${query ? `?${query}` : ""}`;
+  const endpoint = `${USERS_API_BASE_URL}/me/reviews${query ? `?${query}` : ""}`;
 
   const res = await fetch(endpoint, {
     method: "GET",
@@ -168,9 +165,9 @@ export const getMyReviews = async (cursor?: number) => {
   return body as MyReviewListResponse;
 };
 
-// API: GET /users/me/review/{reviewId}
+// API: GET /api/v1/users/me/reviews/{reviewId}
 export const getMyReviewDetail = async (reviewId: string) => {
-  const res = await fetch(`${API_BASE_URL}/users/me/review/${reviewId}`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me/reviews/${reviewId}`, {
     method: "GET",
     headers: buildAuthHeaders()
   });
@@ -186,12 +183,12 @@ export const getMyReviewDetail = async (reviewId: string) => {
   return body as MyReviewDetailResponse;
 };
 
-// API: PUT /users/me/reviews/{reviewId}
+// API: PUT /api/v1/users/me/reviews/{reviewId}
 export const updateMyReview = async (
   reviewId: string,
   payload: UpdateMyReviewPayload
 ) => {
-  const res = await fetch(`${API_BASE_URL}/users/me/reviews/${reviewId}`, {
+  const res = await fetch(`${USERS_API_BASE_URL}/me/reviews/${reviewId}`, {
     method: "PUT",
     headers: buildHeaders(),
     body: JSON.stringify(payload)

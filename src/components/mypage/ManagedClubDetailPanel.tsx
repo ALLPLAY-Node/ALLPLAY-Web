@@ -6,7 +6,7 @@ import {
   type ClubJoinRequestItem,
   type ClubJoinRequestStatus
 } from "@/api/clubs";
-import { getApiResultType, getResponseMessage } from "@/api/common";
+import { getApiResultType, getResponseMessage } from "@/api/auth";
 import type { ClubSummary } from "@/types/club";
 
 type ManagedClubDetailPanelProps = {
@@ -34,7 +34,7 @@ type ClubMember = {
 const placeholderText = "정보 없음";
 
 // 실제 가입 신청 조회/승인 API 실행 여부 (임시 구현 단계에서는 false 유지)
-const ENABLE_JOIN_REQUEST_API = false;
+const ENABLE_JOIN_REQUEST_API = true;
 const MOCK_TARGET_CLUB_ID = "managed-placeholder-1";
 
 const mockJoinRequests: LocalJoinRequest[] = [

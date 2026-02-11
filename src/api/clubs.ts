@@ -1,9 +1,5 @@
 import type { ApiResponse } from "@/types/api";
-import {
-  buildAuthHeaders,
-  buildHeaders,
-  getResponseMessage
-} from "@/api/common";
+import { buildAuthHeaders, buildHeaders, getResponseMessage } from "@/api/auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
