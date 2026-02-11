@@ -1,18 +1,18 @@
-import 농구공 from "@/assets/clubsPage/농구공.png";
-import 야구공 from "@/assets/clubsPage/야구공.png";
-import 축구공 from "@/assets/clubsPage/축구공.png";
-import 테니스공 from "@/assets/clubsPage/테니스공.png";
-import 탁구공 from "@/assets/clubsPage/탁구공.png";
-import 배드민턴공 from "@/assets/clubsPage/배드민턴공.png";
+import basketball from "@/assets/clubsPage/basketball.png";
+import baseball from "@/assets/clubsPage/baseball.png";
+import soccer from "@/assets/clubsPage/soccer.png";
+import tennis from "@/assets/clubsPage/tennis.png";
+import pingpong from "@/assets/clubsPage/pingpong.png";
+import badminton from "@/assets/clubsPage/badminton.png";
 import { sports } from "@/utils/clubs";
 
 const sportImages: Record<number, string> = {
-  1: 농구공,
-  2: 야구공,
-  3: 축구공,
-  4: 테니스공,
-  5: 탁구공,
-  6: 배드민턴공
+  1: basketball,
+  2: baseball,
+  3: soccer,
+  4: tennis,
+  5: pingpong,
+  6: badminton
 };
 
 const sportsCategories = sports.map((sport) => ({

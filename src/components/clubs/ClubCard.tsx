@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router";
 import { joinClub } from "@/api/clubs";
 import type { Club } from "@/types/clubs";
-import 노트 from "@/assets/clubsPage/노트.png";
-import 모임장소 from "@/assets/clubsPage/모임 장소.png";
-import 사람 from "@/assets/clubsPage/사람.png";
+import note from "@/assets/clubsPage/note.png";
+import place from "@/assets/clubsPage/place.png";
+import person from "@/assets/clubsPage/person.png";
 
 interface ClubCardProps {
   club: Club;
@@ -78,15 +78,15 @@ const ClubCard = ({ club, onJoinSuccess }: ClubCardProps) => {
 
         <div className="space-y-1.5 text-sm text-gray-700">
           <div className="flex items-center gap-1">
-            <img src={노트} alt="노트" className="h-4 w-4 shrink-0" />
+            <img src={note} alt="노트" className="h-4 w-4 shrink-0" />
             <span>{club.description || ""}</span>
           </div>
           <div className="flex items-center gap-1">
-            <img src={모임장소} alt="모임 장소" className="h-4 w-4 shrink-0" />
+            <img src={place} alt="모임 장소" className="h-4 w-4 shrink-0" />
             <span>{club.place || ""}</span>
           </div>
           <div className="flex items-center gap-1">
-            <img src={사람} alt="사람" className="h-4 w-4 shrink-0" />
+            <img src={person} alt="사람" className="h-4 w-4 shrink-0" />
             <span>
               <span
                 className={
