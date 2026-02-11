@@ -23,7 +23,7 @@ export function GuSelect({
   const guList = region ? GU_BY_REGION[region] : [];
   return (
     <Select value={value ?? ""} onValueChange={onChange} disabled={!region}>
-      <SelectTrigger className="w-full lg:w-[222px] min-w-[160px]">
+      <SelectTrigger className="lg:w-[222px] min-w-[160px]">
         <SelectValue
           placeholder={region ? placeholder : "지역을 먼저 선택하세요"}
         />

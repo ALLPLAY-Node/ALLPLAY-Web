@@ -9,7 +9,7 @@ const Topbar = () => {
   const accessToken = useAuthStore((s) => s.accessToken);
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     clearAuth();
     navigate("/");
   };

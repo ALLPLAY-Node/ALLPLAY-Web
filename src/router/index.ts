@@ -4,6 +4,11 @@ import FindSpotPage from "@/pages/FindSpotPage";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import SpotDetailPage from "@/pages/SpotDetailPage";
+import ClubCreatePage from "@/pages/ClubCreatePage";
+import ClubDetailPage from "@/pages/ClubDetailPage";
+import ClubsPage from "@/pages/ClubsPage";
+// import MyPage from "@/pages/MyPage";
+
 import { createBrowserRouter } from "react-router";
 
 export const router = createBrowserRouter([
@@ -30,6 +35,30 @@ export const router = createBrowserRouter([
       {
         path: "spots/:id",
         Component: SpotDetailPage
+      },
+      {
+        path: "spots",
+        Component: HomePage
+      },
+      // {
+      //   path: "spots/:id",
+      //   Component: FacilityDetailPage
+      // },
+      {
+        path: "clubs",
+        Component: ClubsPage
+      },
+      {
+        path: "clubs/new",
+        Component: ClubCreatePage
+      },
+      {
+        path: "clubs/:id",
+        Component: ClubDetailPage
+      },
+      {
+        path: "clubs/:id/edit",
+        Component: ClubCreatePage
       }
     ]
   }

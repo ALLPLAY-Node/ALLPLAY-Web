@@ -10,7 +10,7 @@ export const getSpots = async (params?: spotQuery) => {
 };
 
 // 시설 상세 조회
-export const getSpot = async (id: number) => {
+export const getSpot = async (id: string) => {
   const res = await axiosInstance.get(`/facilities/${id}`);
   return res.data;
 };

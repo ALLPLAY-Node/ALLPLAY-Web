@@ -22,7 +22,12 @@ export function ListingCard({ spot }: ListingCardProps) {
   const navigate = useNavigate();
 
   const handleReserve = () => {
-    window.open(normalizeUrl(spot.homepageUrl));
+    if (!spot.homepageUrl) return;
+    window.open(
+      normalizeUrl(spot.homepageUrl),
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   return (

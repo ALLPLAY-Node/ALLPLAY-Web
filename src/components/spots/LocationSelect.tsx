@@ -21,7 +21,7 @@ export function LocationSelect({ value, onChange }: LocationSelectProps) {
       value={value ?? ""}
       onValueChange={(v) => onChange(v as RegionLabel)}
     >
-      <SelectTrigger className="w-full lg:w-[222px] min-w-[160px]">
+      <SelectTrigger className="lg:w-[222px] min-w-[160px]">
         <SelectValue placeholder="지역 선택" />
       </SelectTrigger>
 
@@ -33,7 +33,7 @@ export function LocationSelect({ value, onChange }: LocationSelectProps) {
             </SelectLabel>
 
             {group.items.map((item) => (
-              <SelectItem key={item.value} value={item.label}>
+              <SelectItem key={item.value} value={item.value}>
                 {item.label}
               </SelectItem>
             ))}

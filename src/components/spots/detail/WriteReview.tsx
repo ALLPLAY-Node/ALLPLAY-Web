@@ -26,12 +26,15 @@ const WriteReview = () => {
     })();
   }, []);
 
-  // 지우기
-  useEffect(() => {
-    console.log("user", user);
-  }, [user]);
-
   const [images, setImages] = useState<File[]>([]);
+
+  const previewUrls = images.map((file) => URL.createObjectURL(file));
+
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [images, previewUrls]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -89,7 +92,7 @@ const WriteReview = () => {
             {images.map((file, index) => (
               <div key={index} className="relative w-20 h-20 flex-shrink-0">
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={previewUrls[index]}
                   className="w-full h-full object-cover rounded-md"
                 />
                 {/* 삭제 */}

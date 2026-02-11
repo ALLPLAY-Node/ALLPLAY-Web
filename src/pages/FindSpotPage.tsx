@@ -91,8 +91,6 @@ const FindSpotPage = () => {
     })();
   }, [regionId, sportId, debouncedKeyword, isPublic, isReservable, isFree]);
 
-  if (!spots) return;
-
   return (
     <div className="flex flex-col gap-10 py-10">
       <div>

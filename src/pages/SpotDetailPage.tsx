@@ -11,7 +11,7 @@ import WriteReview from "@/components/spots/detail/WriteReview";
 
 const SpotDetailPage = () => {
   const { id } = useParams();
-  const spotId = Number(id);
+  const spotId = id ? String(id) : undefined;
 
   const [spot, setSpot] = useState<Spot | null>(null);
   const [reviews, setReviews] = useState<SpotReview[]>();
@@ -19,7 +19,7 @@ const SpotDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!spotId || Number.isNaN(spotId)) return;
+    if (spotId == null || Number.isNaN(spotId)) return;
 
     (async () => {
       try {
@@ -47,9 +47,9 @@ const SpotDetailPage = () => {
     window.open(normalizeUrl(spot.homepageUrl));
   };
 
-  useEffect(() => {
-    console.log(spot);
-  }, [spot]);
+  // useEffect(() => {
+  //   console.log(spot);
+  // }, [spot]);
 
   // TODO: spinner 도입
   if (isLoading) return <div>로딩중...</div>;
