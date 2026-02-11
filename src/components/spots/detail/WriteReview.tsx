@@ -26,6 +26,7 @@ const WriteReview = () => {
     })();
   }, []);
 
+  // 지우기
   useEffect(() => {
     console.log("user", user);
   }, [user]);
@@ -64,7 +65,15 @@ const WriteReview = () => {
     <div className="flex bg-gray-100 rounded-xl px-4 py-5">
       <div className="w-[120px] flex flex-col justify-center items-center">
         {user?.profilePhotoUrl ? (
-          <UserAvatar image={user.profilePhotoUrl} username={user.userId} />
+          <div className="flex flex-col items-center justify-center gap-1">
+            <UserAvatar image={user.profilePhotoUrl} username={user.name} />
+            <span
+              className="text-xs max-w-[72px] truncate text-center leading-tight"
+              title={user.name}
+            >
+              {user.name}
+            </span>
+          </div>
         ) : (
           <UserAvatar image={Basic} />
         )}

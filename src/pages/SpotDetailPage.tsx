@@ -15,8 +15,8 @@ const SpotDetailPage = () => {
 
   const [spot, setSpot] = useState<Spot | null>(null);
   const [reviews, setReviews] = useState<SpotReview[]>();
-  const [, setIsLoading] = useState(false);
-  const [, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!spotId || Number.isNaN(spotId)) return;
@@ -51,7 +51,10 @@ const SpotDetailPage = () => {
     console.log(spot);
   }, [spot]);
 
-  if (!spot) return;
+  // TODO: spinner 도입
+  if (isLoading) return <div>로딩중...</div>;
+  if (error) return <div>{error}</div>;
+  if (!spot) return null;
 
   return (
     <div className="flex flex-col gap-4">

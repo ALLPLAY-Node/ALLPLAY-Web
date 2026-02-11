@@ -8,9 +8,11 @@ export const uploadImages = async (files: File[]) => {
 
       const presigned = await getPresignedUrl(fileName, file.type);
 
-      await uploadToS3(file, presigned.success);
+      const presignedUrl: string = presigned.success.url;
 
-      return presigned.success.url.split("?")[0];
+      await uploadToS3(file, presignedUrl);
+
+      return presignedUrl.split("?")[0];
     })
   );
 

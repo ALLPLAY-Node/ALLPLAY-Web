@@ -157,7 +157,8 @@ export const GU_BY_REGION = {
     "북구",
     "서구",
     "수성구",
-    "중구"
+    "중구",
+    "군위군"
   ],
   대전광역시: ["대덕구", "동구", "서구", "유성구", "중구"],
   부산광역시: [
@@ -313,7 +314,7 @@ export const REGION_TO_FULL = {
   충청남도: "충청남도",
   전라북도: "전라북도",
   전라남도: "전라남도",
-  제주도: "제주도"
+  제주도: "제주특별자치도"
 } as const;
 
 export type RegionLabel = keyof typeof REGION_TO_FULL;
