@@ -1,3 +1,5 @@
+import type { ApiResponse } from "@/types/api";
+import { buildAuthHeaders, getResponseMessage } from "@/api/auth";
 import type {
   ClubsQueryParams,
   ClubsResponse,
@@ -42,6 +44,21 @@ const getResultType = (data: { resultType?: string; resultTyle?: string }) =>
   data.resultType ?? data.resultTyle ?? "ERROR";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+
+export type ClubJoinRequestStatus = "APPROVED" | "REJECTED";
+
+export type ClubJoinRequestItem = {
+  id: string | number;
+  club_id: string;
+  user_id: string;
+  applicationDate: string;
+};
+
+type CursorResponse<T> = {
+  items: T[];
+  nextCursor?: number;
+  hasNext?: boolean;
+};
 
 export const getClubs = async (
   params: ClubsQueryParams = {}
@@ -320,4 +337,77 @@ export const updateClub = async (
     error: null,
     success: responseData.success
   };
+};
+
+type ClubJoinRequestListResponse = ApiResponse<
+  CursorResponse<ClubJoinRequestItem>
+>;
+
+type ClubJoinDecisionResponse = ApiResponse<Record<string, never>>;
+
+export const getClubJoinRequests = async (clubId: string, cursor?: number) => {
+  const params = new URLSearchParams();
+  if (cursor !== undefined) {
+    params.set("cursor", String(cursor));
+  }
+
+  const query = params.toString();
+  const endpoint = `${API_BASE_URL}/clubs/${clubId}/join-requests${
+    query ? `?${query}` : ""
+  }`;
+
+  const res = await fetch(endpoint, {
+    method: "GET",
+    headers: buildAuthHeaders()
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      getResponseMessage(body, "Failed to fetch join request status.")
+    );
+  }
+
+  return body as ClubJoinRequestListResponse;
+};
+
+export const processClubJoinRequest = async (
+  clubId: string,
+  requestId: string,
+  status: ClubJoinRequestStatus
+) => {
+  const res = await fetch(
+    `${API_BASE_URL}/clubs/${clubId}/join-requests/${requestId}`,
+    {
+      method: "POST",
+      headers: buildAuthHeaders(true),
+      body: JSON.stringify({ status })
+    }
+  );
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      getResponseMessage(body, "Failed to process join request.")
+    );
+  }
+
+  return body as ClubJoinDecisionResponse;
+};
+
+export const leaveClub = async (clubId: string) => {
+  const res = await fetch(`${API_BASE_URL}/clubs/${clubId}/join`, {
+    method: "DELETE",
+    headers: buildAuthHeaders(true)
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(getResponseMessage(body, "Failed to leave club"));
+  }
+
+  return body as ApiResponse<Record<string, never>>;
 };

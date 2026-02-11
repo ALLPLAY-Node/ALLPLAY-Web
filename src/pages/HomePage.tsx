@@ -105,6 +105,8 @@ const HomePage = () => {
   const [selectedSport, setSelectedSport] = useState<number | null>(null);
   const [facilities, setFacilities] = useState<FacilityItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [cursor, setCursor] = useState<string | number | undefined>();
+  const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     const fetchFacilities = async () => {
@@ -114,9 +116,13 @@ const HomePage = () => {
           sportId: selectedSport ?? undefined
         });
         setFacilities(response.success?.items ?? []);
+        setCursor(response.success?.cursor ?? undefined);
+        setHasMore(Boolean(response.success?.hasNext));
       } catch (error) {
         console.error("Failed to fetch facilities:", error);
         setFacilities([]);
+        setCursor(undefined);
+        setHasMore(false);
       } finally {
         setIsLoading(false);
       }
@@ -124,6 +130,28 @@ const HomePage = () => {
 
     fetchFacilities();
   }, [selectedSport]);
+
+  useEffect(() => {
+    setCursor(undefined);
+  }, [selectedSport]);
+
+  const handleLoadMore = async () => {
+    if (!cursor) return;
+    setIsLoading(true);
+    try {
+      const response = await getFacilities({
+        sportId: selectedSport ?? undefined,
+        cursor
+      });
+      setFacilities((prev) => [...prev, ...(response.success?.items ?? [])]);
+      setCursor(response.success?.cursor ?? undefined);
+      setHasMore(Boolean(response.success?.hasNext));
+    } catch (error) {
+      console.error("Failed to fetch more facilities:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <main className="w-full pt-4 pb-10">
@@ -142,7 +170,7 @@ const HomePage = () => {
           </p>
           <button
             type="button"
-            onClick={() => navigate("/spots")}
+            onClick={() => navigate("/clubs")}
             className="rounded-lg bg-white px-6 py-3 text-base font-medium text-[#006FFF] transition-colors duration-200 hover:bg-gray-100"
           >
             지금 시작하기 &gt;
@@ -218,6 +246,17 @@ const HomePage = () => {
             ))
           )}
         </div>
+        {hasMore && !isLoading && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 transition-colors duration-200 hover:bg-gray-50"
+            >
+              더 보기
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
