@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/stores/authStore";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,7 +13,7 @@ const axiosInstance = axios.create({
 // 인터셉터
 axiosInstance.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem("accessToken");
+    const { accessToken } = useAuthStore.getState();
 
     if (accessToken) {
       config.headers = config.headers ?? {};
@@ -37,24 +38,21 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        const { refreshToken, setTokens, clearAuth } = useAuthStore.getState();
 
         if (!refreshToken) {
-          localStorage.clear();
+          clearAuth();
           return Promise.reject(error);
         }
 
-        const res = await axios.post(`${baseURL}/auth/refresh`, {
+        const res = await axios.post(`${baseURL}/api/auth/refresh`, {
           refreshToken
         });
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
           res.data;
 
-        localStorage.setItem("accessToken", newAccessToken);
-        if (newRefreshToken) {
-          localStorage.setItem("refreshToken", newRefreshToken);
-        }
+        setTokens(newAccessToken, newRefreshToken ?? refreshToken);
 
         originalRequest.headers = originalRequest.headers ?? {};
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -62,8 +60,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.error("토큰 갱신 실패", refreshError);
-        localStorage.clear();
-        window.location.replace("/login");
+        useAuthStore.getState().clearAuth();
         return Promise.reject(refreshError);
       }
     }

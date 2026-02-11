@@ -1,26 +1,18 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { BsPerson } from "react-icons/bs";
 import { GrLogin, GrLogout } from "react-icons/gr";
-import { logout } from "@/api/logout";
-import { useNavigate } from "react-router";
-import { useEffect, useState } from "react";
+// import { logout } from "@/api/logout";
+import { useAuthStore } from "@/stores/authStore";
 
 const Topbar = () => {
   const navigate = useNavigate();
-  const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    setAccessToken(localStorage.getItem("accessToken"));
-  }, []);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } finally {
-      localStorage.clear();
-      setAccessToken(null);
-      navigate("/", { replace: true });
-    }
+    clearAuth();
+    navigate("/");
   };
 
   return (
@@ -29,6 +21,7 @@ const Topbar = () => {
         <BsPerson size={18} />
         회원가입
       </Link>
+
       {accessToken ? (
         <button
           className="flex jusity-center items-center gap-1"
@@ -43,6 +36,7 @@ const Topbar = () => {
           로그인
         </Link>
       )}
+
       <Link to="/mypage" className="flex jusity-center items-center gap-1">
         마이페이지
       </Link>

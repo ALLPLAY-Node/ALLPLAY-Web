@@ -86,11 +86,12 @@ const FindSpotPage = () => {
       });
 
       console.log("조회 결과:", data);
-      console.log(data.success?.data[0]?.isReservable);
 
-      setSpots(data.success.data);
+      setSpots(data.success.items);
     })();
   }, [regionId, sportId, debouncedKeyword, isPublic, isReservable, isFree]);
+
+  if (!spots) return;
 
   return (
     <div className="flex flex-col gap-10 py-10">
