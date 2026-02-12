@@ -157,6 +157,17 @@ const createUploadFileName = (prefix: string, file: File, index: number) => {
   return `${prefix}-${Date.now()}-${index}.${extension}`;
 };
 
+const shouldNavigateToClubCreate = (club: ClubSummary) => {
+  const clubId = club.id?.trim();
+  if (!clubId) {
+    return true;
+  }
+
+  return (
+    clubId.startsWith("managed-placeholder") || clubId.startsWith("placeholder")
+  );
+};
+
 const MyPage = () => {
   const navigate = useNavigate();
 
@@ -287,6 +298,11 @@ const MyPage = () => {
   };
 
   const handleEditManagedClub = (club: ClubSummary) => {
+    if (shouldNavigateToClubCreate(club)) {
+      navigate("/clubs/new");
+      return;
+    }
+
     navigate(`/clubs/${club.id}/edit`);
   };
 
