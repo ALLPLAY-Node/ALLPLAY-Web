@@ -1,23 +1,40 @@
-import { Link } from "react-router";
-import { BsPerson } from "react-icons/bs";
-import { GrLogin } from "react-icons/gr";
+import { Link, useNavigate } from "react-router";
+import { GrLogin, GrLogout } from "react-icons/gr";
+// import { logout } from "@/api/logout";
+import { useAuthStore } from "@/stores/authStore";
 
 const Topbar = () => {
+  const navigate = useNavigate();
+
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/");
+  };
+
   return (
-    <div className="flex justify-end gap-[24px] py-2 text-sm">
-      <Link to="/join" className="flex items-center justify-center gap-1">
-        <BsPerson size={18} />
-        {"\uD68C\uC6D0\uAC00\uC785"}
+    <div className="flex justify-end gap-[24px] text-sm py-2">
+      {accessToken ? (
+        <button
+          className="flex justify-center items-center gap-1"
+          onClick={handleLogout}
+        >
+          <GrLogout size={18} />
+          로그아웃
+        </button>
+      ) : (
+        <Link to="/login" className="flex justify-center items-center gap-1">
+          <GrLogin size={18} />
+          로그인
+        </Link>
+      )}
+      <Link to="/mypage" className="flex justify-center items-center gap-1">
+        마이페이지
       </Link>
-      <Link to="/login" className="flex items-center justify-center gap-1">
-        <GrLogin size={18} />
-        {"\uB85C\uADF8\uC778"}
-      </Link>
-      <Link to="/mypage" className="flex items-center justify-center gap-1">
-        {"\uB9C8\uC774\uD398\uC774\uC9C0"}
-      </Link>
-      <Link to="/help" className="flex items-center justify-center gap-1">
-        {"\uB3C4\uC6C0\uB9D0"}
+      <Link to="/help" className="flex justify-center items-center gap-1">
+        도움말
       </Link>
     </div>
   );
