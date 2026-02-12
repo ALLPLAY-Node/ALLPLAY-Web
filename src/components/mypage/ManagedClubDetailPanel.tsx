@@ -270,7 +270,7 @@ const ManagedClubDetailPanel = ({
               if (!club) {
                 return;
               }
-              // TODO: merge 후 이 지점에서 수정 페이지 연결 로직을 오버라이드!
+              // 상위(MyPage)에서 등록(/clubs/new) 또는 수정(/clubs/:id/edit) 경로를 분기한다.
               onEditClub?.(club);
             }}
           >
