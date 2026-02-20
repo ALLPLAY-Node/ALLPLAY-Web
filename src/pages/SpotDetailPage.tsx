@@ -33,7 +33,7 @@ const SpotDetailPage = () => {
 
         setSpot(spotRes.success);
         setReviews(reviewRes.success.data);
-      } catch (e) {
+      } catch {
         setError("시설 정보를 불러오지 못했어요.");
       } finally {
         setIsLoading(false);
@@ -43,15 +43,9 @@ const SpotDetailPage = () => {
 
   const handleReserved = () => {
     if (!spot) return;
-    console.log(normalizeUrl(spot.homepageUrl));
     window.open(normalizeUrl(spot.homepageUrl));
   };
 
-  // useEffect(() => {
-  //   console.log(spot);
-  // }, [spot]);
-
-  // TODO: spinner 도입
   if (isLoading) return <div>로딩중...</div>;
   if (error) return <div>{error}</div>;
   if (!spot) return null;
@@ -59,17 +53,17 @@ const SpotDetailPage = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 pt-8">
-        {spot?.imageUrl.length ? (
+        {spot.imageUrl.length ? (
           <img src={spot.imageUrl[0]} alt="시설 이미지" />
         ) : (
           <div className="relative z-20 aspect-video w-full rounded-xl bg-gradient-to-br from-gray-200 to-gray-300 flex flex-col items-center justify-center text-gray-600">
-            <span className="text-xs mt-1">NO IMAGE</span>
+            <span className="text-xs mt-1">이미지 없음</span>
           </div>
         )}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col w-[386px] gap-2 rounded-xl border border-[#999999] px-[24px] py-[22px]">
             <Badge className="bg-[#CCE2FF] text-[#006FFF] font-semibold">
-              {spot?.sportType}
+              {spot.sportType}
             </Badge>
             <h2 className="text-[32px] font-bold">{spot.facilityName}</h2>
             <span className="text-[#999999] text-[16px] font-thin">
@@ -107,6 +101,7 @@ const SpotDetailPage = () => {
       <div className="flex flex-col gap-4">
         <div className="w-full rounded-xl border border-[#999999] p-6">
           <span className="text-[22px] font-semibold mb-4">시설 소개</span>
+          <div>{spot.introduction}</div>
         </div>
         <div className="w-full rounded-xl border border-[#999999] p-6">
           <span className="flex flex-col text-[22px] font-semibold mb-4">
@@ -127,8 +122,8 @@ const SpotDetailPage = () => {
       <div className="flex flex-col">
         <span className="text-[22px] font-semibold">시설 리뷰</span>
         <div className="flex flex-col gap-2">
-          {reviews?.map((r) => (
-            <Reviews key={r.id} review={r} />
+          {reviews?.map((review) => (
+            <Reviews key={review.id} review={review} />
           ))}
           <WriteReview />
         </div>
