@@ -17,6 +17,7 @@ import ClubDescriptionSection from "@/components/clubs/form/ClubDescriptionSecti
 import JoinRequirementSection from "@/components/clubs/form/JoinRequirementSection";
 import ContactInfoSection from "@/components/clubs/form/ContactInfoSection";
 import FormActions from "@/components/clubs/form/FormActions";
+import { getAccessToken } from "@/api/auth";
 
 const ClubCreatePage = () => {
   const navigate = useNavigate();
@@ -263,7 +264,7 @@ const ClubCreatePage = () => {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (!token) {
       alert("로그인이 필요합니다.");
       navigate("/login");

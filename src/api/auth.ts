@@ -4,6 +4,7 @@ type LegacyMessageBody = {
   message?: string;
   // Keep compatibility with backend typo field name: messege
   messege?: string;
+  error?: string | null;
 } | null;
 
 type LegacyResultTypeBody = {
@@ -19,7 +20,7 @@ export const getAccessToken = () => {
 
 export const getResponseMessage = (body: unknown, fallback: string) => {
   const parsed = body as LegacyMessageBody;
-  return parsed?.message ?? parsed?.messege ?? fallback;
+  return parsed?.message ?? parsed?.messege ?? parsed?.error ?? fallback;
 };
 
 export const buildAuthHeaders = (withJsonContentType = false) => {

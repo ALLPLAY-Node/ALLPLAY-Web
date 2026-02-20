@@ -5,8 +5,8 @@ import { LocationSelect } from "@/components/spots/LocationSelect";
 import { GuSelect } from "@/components/spots/GuSelect";
 import SpotSearch from "@/components/spots/SpotSearch";
 import {
-  REGION_TO_FULL,
-  type RegionLabel,
+  REGION_CODE_TO_FULL,
+  type RegionCode,
   type RegionName
 } from "@/components/spots/constants";
 import { Button } from "@/components/ui/button";
@@ -16,16 +16,16 @@ import type { Spot } from "@/types/spots";
 
 const FindSpotPage = () => {
   // 지역
-  const [regionLabel, setRegionLabel] = useState<RegionLabel | undefined>();
+  const [regionCode, setRegionCode] = useState<RegionCode | undefined>();
   const [region, setRegion] = useState<RegionName | undefined>();
 
   // 구
   const [gu, setGu] = useState("");
 
-  const handleRegionChange = (label: RegionLabel) => {
-    setRegionLabel(label);
+  const handleRegionChange = (code: RegionCode) => {
+    setRegionCode(code);
 
-    const full = REGION_TO_FULL[label];
+    const full = REGION_CODE_TO_FULL[code];
     setRegion(full);
 
     setGu("");
@@ -112,7 +112,7 @@ const FindSpotPage = () => {
       <div className="flex flex-col gap-4">
         <div className="flex gap-6">
           <div className="flex gap-2">
-            <LocationSelect value={regionLabel} onChange={handleRegionChange} />
+            <LocationSelect value={regionCode} onChange={handleRegionChange} />
             <GuSelect region={region} value={gu} onChange={setGu} />
           </div>
           <SpotSearch onSearch={setKeyword} />

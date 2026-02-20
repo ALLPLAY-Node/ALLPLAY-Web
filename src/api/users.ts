@@ -2,8 +2,11 @@ import type { ApiResponse } from "@/types/api";
 import type { ClubListResponse } from "@/types/club";
 import { buildAuthHeaders, buildHeaders, getResponseMessage } from "@/api/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
-const USERS_API_BASE_URL = `${API_BASE_URL}/api/v1/users`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const normalizedApiBaseUrl = API_BASE_URL.replace(/\/+$/, "");
+const USERS_API_BASE_URL = /\/api$/i.test(normalizedApiBaseUrl)
+  ? `${normalizedApiBaseUrl}/v1/users`
+  : `${normalizedApiBaseUrl}/api/v1/users`;
 
 type CursorResponse<T> = {
   items: T[];
@@ -58,7 +61,7 @@ export type MyInfo = {
   profilePhotoUrl?: string;
   introduce?: string;
   region?: MyRegion;
-  // NOTE: 오탈자/확장 가능성: API 명세에 없지만 화면에서 필요한 필드
+  // Keep optional fields used by UI until backend schema is finalized.
   name?: string;
   phoneNumber?: string;
   gender?: string;
@@ -81,7 +84,7 @@ type UpdateMyInfoResponse = ApiResponse<{
 export const getMyClubs = async () => {
   const res = await fetch(`${USERS_API_BASE_URL}/me/clubs`, {
     method: "GET",
-    headers: buildHeaders()
+    headers: buildAuthHeaders()
   });
 
   if (!res.ok) {
@@ -95,7 +98,7 @@ export const getMyClubs = async () => {
 export const getManagedClubs = async () => {
   const res = await fetch(`${USERS_API_BASE_URL}/me/clubs/managed`, {
     method: "GET",
-    headers: buildHeaders()
+    headers: buildAuthHeaders()
   });
 
   if (!res.ok) {

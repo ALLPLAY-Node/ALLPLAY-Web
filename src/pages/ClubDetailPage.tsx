@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { getClubDetail, joinClub } from "@/api/clubs";
 import type { ClubDetail } from "@/types/clubs";
 import SuccessModal from "@/components/clubs/SuccessModal";
+import { getAccessToken } from "@/api/auth";
 
 const ClubDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -121,7 +122,7 @@ const ClubDetailPage = () => {
   const handleJoinClick = async () => {
     if (!id) return;
 
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (!token) {
       alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
       return;

@@ -1,7 +1,10 @@
+import { buildAuthHeaders, getResponseMessage } from "@/api/auth";
 import type {
   FacilitiesQueryParams,
   FacilitiesResponse,
-  FacilityDetailResponse
+  FacilityDetailResponse,
+  CreateFacilityRequest,
+  CreateFacilityResponse
 } from "@/types/facilities";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
@@ -161,5 +164,36 @@ export const getFacilityDetail = async (
     message: data.message,
     error: null,
     success: data.success
+  };
+};
+
+export const createFacility = async (
+  payload: CreateFacilityRequest
+): Promise<CreateFacilityResponse> => {
+  const url = `${API_BASE_URL}/facilities`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: buildAuthHeaders(true),
+    body: JSON.stringify(payload)
+  });
+
+  const body = (await response.json().catch(() => ({}))) as ApiEnvelope<{
+    id: string;
+    facilityName: string;
+    createdAt: string;
+  }>;
+
+  const resultType = getResultType(body);
+
+  if (!response.ok || resultType !== "SUCCESS") {
+    throw new Error(getResponseMessage(body, "Failed to create facility"));
+  }
+
+  return {
+    resultType: "SUCCESS",
+    message: body.message,
+    error: body.error,
+    success: body.success
   };
 };

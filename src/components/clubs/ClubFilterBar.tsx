@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Search } from "lucide-react";
 import RegionDropdown from "./RegionDropdown";
 import DistrictDropdown from "./DistrictDropdown";
@@ -28,12 +27,6 @@ const ClubFilterBar = ({
   onAgeChange,
   onSearchChange
 }: ClubFilterBarProps) => {
-  const [forceCloseKey, setForceCloseKey] = useState(0);
-
-  const closeAllDropdowns = () => {
-    setForceCloseKey((prev) => prev + 1);
-  };
-
   const handleRegionSelect = (
     region: string | undefined,
     isAllSelected: boolean
@@ -46,18 +39,14 @@ const ClubFilterBar = ({
 
   return (
     <section className="mb-6 flex items-center gap-2">
-      {/* 지역 선택 */}
       <div className="w-[222px]">
         <RegionDropdown
           selectedRegion={selectedRegion}
           onSelect={handleRegionSelect}
           isAllSelected={!selectedRegion}
-          onCloseOtherDropdowns={closeAllDropdowns}
-          forceCloseKey={forceCloseKey}
         />
       </div>
 
-      {/* 시/군/구 선택 */}
       <div className="w-[222px]">
         <DistrictDropdown
           selectedRegion={selectedRegion}
@@ -66,23 +55,17 @@ const ClubFilterBar = ({
             onDistrictChange(district, districtId)
           }
           isAllSelected={!selectedDistrict}
-          onCloseOtherDropdowns={closeAllDropdowns}
-          forceCloseKey={forceCloseKey}
         />
       </div>
 
-      {/* 연령 선택 */}
       <div className="w-[222px]">
         <AgeDropdown
           selectedAgeGroup={selectedAgeGroup}
           onSelect={(age) => onAgeChange(age)}
           isAllSelected={!selectedAgeGroup}
-          onCloseOtherDropdowns={closeAllDropdowns}
-          forceCloseKey={forceCloseKey}
         />
       </div>
 
-      {/* 검색어 입력 */}
       <div className="relative flex-1">
         <label className="sr-only" htmlFor="club-search-input">
           검색어
