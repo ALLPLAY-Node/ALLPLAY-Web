@@ -336,7 +336,7 @@ export const REGION_CODE_TO_FULL = {
   CHUNGNAM: "충청남도",
   JEONBUK: "전라북도",
   JEONNAM: "전라남도",
-  JEJU: "제주도"
+  JEJU: "\uC81C\uC8FC\uD2B9\uBCC4\uC790\uCE58\uB3C4"
 } as const;
 
 export type RegionCode = keyof typeof REGION_CODE_TO_FULL;

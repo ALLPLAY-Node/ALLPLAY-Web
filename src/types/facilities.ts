@@ -56,3 +56,29 @@ export interface FacilityDetailResponse {
   error: string | null;
   success: FacilityDetail | null;
 }
+
+export interface CreateFacilityRequest {
+  facilityName: string;
+  sportType: string;
+  city: string;
+  district: string;
+  operatingHours: string;
+  imageURL?: string[];
+  introduction: string;
+  information: string;
+  contact: string;
+  hompageUrl?: string;
+}
+
+export interface CreateFacilitySuccess {
+  id: string;
+  facilityName: string;
+  createdAt: string;
+}
+
+export interface CreateFacilityResponse {
+  resultType: "SUCCESS" | "ERROR" | "FAIL";
+  message: string;
+  error: string | null;
+  success: CreateFacilitySuccess | null;
+}

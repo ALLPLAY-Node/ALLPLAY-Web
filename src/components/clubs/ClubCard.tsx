@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { joinClub } from "@/api/clubs";
 import type { Club } from "@/types/clubs";
+import { getAccessToken } from "@/api/auth";
 import note from "@/assets/clubsPage/note.png";
 import place from "@/assets/clubsPage/place.png";
 import person from "@/assets/clubsPage/person.png";
@@ -25,7 +26,7 @@ const ClubCard = ({ club, onJoinSuccess }: ClubCardProps) => {
   const handleJoinClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (!token) {
       alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
       return;

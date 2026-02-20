@@ -4,6 +4,7 @@ import FindSpotPage from "@/pages/FindSpotPage";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import SpotDetailPage from "@/pages/SpotDetailPage";
+import FacilityCreatePage from "@/pages/FacilityCreatePage";
 import ClubCreatePage from "@/pages/ClubCreatePage";
 import ClubDetailPage from "@/pages/ClubDetailPage";
 import ClubsPage from "@/pages/ClubsPage";
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
       {
         path: "spots",
         Component: FindSpotPage
+      },
+      {
+        path: "spots/new",
+        Component: FacilityCreatePage
       },
       {
         path: "spots/:id",
