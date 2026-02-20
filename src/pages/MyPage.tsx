@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import MyPageLayout from "@/components/mypage/MyPageLayout";
 import ClubSection from "@/components/mypage/ClubSection";
@@ -168,6 +168,71 @@ const shouldNavigateToClubCreate = (club: ClubSummary) => {
   );
 };
 
+const normalizeClubSummary = (club: Record<string, unknown>): ClubSummary => {
+  const id = club.id ?? club.clubId ?? club.clubID;
+  const name = club.name ?? club.clubName;
+  const capacity = club.capacity ?? club.maxMemberCount;
+
+  return {
+    id: String(id ?? name ?? ""),
+    name: String(name ?? ""),
+    sportType: String(club.sportType ?? club.sport ?? ""),
+    regionCity: String(club.regionCity ?? club.city ?? club.region ?? ""),
+    logoUrl: typeof club.logoUrl === "string" ? club.logoUrl : undefined,
+    summary:
+      typeof club.summary === "string"
+        ? club.summary
+        : typeof club.description === "string"
+          ? club.description
+          : undefined,
+    level: typeof club.level === "string" ? club.level : undefined,
+    capacity: Number.isFinite(Number(capacity)) ? Number(capacity) : undefined,
+    joinRequirement:
+      typeof club.joinRequirement === "string"
+        ? club.joinRequirement
+        : undefined,
+    contact: typeof club.contact === "string" ? club.contact : undefined,
+    url:
+      typeof club.url === "string"
+        ? club.url
+        : typeof club.homePageUrl === "string"
+          ? club.homePageUrl
+          : undefined,
+    joinStatus:
+      club.joinStatus === "PENDING" ||
+      club.joinStatus === "APPROVED" ||
+      club.joinStatus === "REJECTED"
+        ? club.joinStatus
+        : undefined
+  };
+};
+
+const toClubItems = (response: { success?: unknown }): ClubSummary[] => {
+  const success = response.success;
+
+  if (Array.isArray(success)) {
+    return success
+      .filter((club): club is Record<string, unknown> => Boolean(club))
+      .map((club) => normalizeClubSummary(club))
+      .filter((club) => Boolean(club.id));
+  }
+
+  if (success && typeof success === "object") {
+    const payload = success as Record<string, unknown>;
+    const items = Array.isArray(payload.items)
+      ? payload.items
+      : Array.isArray(payload.clubs)
+        ? payload.clubs
+        : [];
+
+    return items
+      .filter((club): club is Record<string, unknown> => Boolean(club))
+      .map((club) => normalizeClubSummary(club))
+      .filter((club) => Boolean(club.id));
+  }
+
+  return [];
+};
 const MyPage = () => {
   const navigate = useNavigate();
 
@@ -208,10 +273,10 @@ const MyPage = () => {
       const managedResultType = getApiResultType(managedRes);
 
       setJoinedClubs(
-        joinedResultType === "SUCCESS" ? (joinedRes.success?.items ?? []) : []
+        joinedResultType === "SUCCESS" ? toClubItems(joinedRes) : []
       );
       setManagedClubs(
-        managedResultType === "SUCCESS" ? (managedRes.success?.items ?? []) : []
+        managedResultType === "SUCCESS" ? toClubItems(managedRes) : []
       );
     } catch (error) {
       console.error(error);
